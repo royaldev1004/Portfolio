@@ -263,3 +263,36 @@ begin
   insert into skills (group_id, skill_name, sort_order) values
     (g_devops, 'Vercel', 0),(g_devops, 'Railway', 1),(g_devops, 'Docker', 2),(g_devops, 'GitHub Actions', 3),(g_devops, 'CI/CD', 4),(g_devops, 'Cloudflare', 5),(g_devops, 'AWS (S3, Lambda)', 6);
 end $$;
+
+-- ── 4. STORAGE — Profile image uploads (run once in SQL Editor) ─
+-- Dashboard alternative: Storage → New bucket → name "portfolio-media" → Public bucket
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'portfolio-media',
+  'portfolio-media',
+  true,
+  5242880,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']::text[]
+)
+on conflict (id) do update set public = excluded.public;
+
+drop policy if exists "portfolio_media_public_read" on storage.objects;
+create policy "portfolio_media_public_read"
+  on storage.objects for select
+  using (bucket_id = 'portfolio-media');
+
+drop policy if exists "portfolio_media_auth_insert" on storage.objects;
+create policy "portfolio_media_auth_insert"
+  on storage.objects for insert
+  with check (bucket_id = 'portfolio-media' and auth.role() = 'authenticated');
+
+drop policy if exists "portfolio_media_auth_update" on storage.objects;
+create policy "portfolio_media_auth_update"
+  on storage.objects for update
+  using (bucket_id = 'portfolio-media' and auth.role() = 'authenticated');
+
+drop policy if exists "portfolio_media_auth_delete" on storage.objects;
+create policy "portfolio_media_auth_delete"
+  on storage.objects for delete
+  using (bucket_id = 'portfolio-media' and auth.role() = 'authenticated');

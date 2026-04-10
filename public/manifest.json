@@ -1,0 +1,16 @@
+{
+  "name": "Royal Dev — Portfolio",
+  "short_name": "Royal Dev",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "display": "standalone",
+  "start_url": "/",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a"
+}
