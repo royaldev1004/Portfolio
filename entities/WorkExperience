@@ -1,0 +1,50 @@
+{
+  "name": "WorkExperience",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "Job title / role"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company or organization name"
+    },
+    "period": {
+      "type": "string",
+      "description": "Employment period (e.g. 2021 \u2014 Present)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Full-time",
+        "Part-time",
+        "Freelance",
+        "Contract",
+        "Internship"
+      ],
+      "default": "Full-time"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the role and responsibilities"
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key achievements or highlights"
+    },
+    "order": {
+      "type": "number",
+      "description": "Display order (lower = shown first)",
+      "default": 0
+    }
+  },
+  "required": [
+    "role",
+    "company",
+    "period"
+  ]
+}

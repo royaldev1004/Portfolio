@@ -1,0 +1,32 @@
+{
+  "name": "Education",
+  "type": "object",
+  "properties": {
+    "degree": {
+      "type": "string",
+      "description": "Degree or qualification title"
+    },
+    "institution": {
+      "type": "string",
+      "description": "School or institution name"
+    },
+    "period": {
+      "type": "string",
+      "description": "Study period (e.g. 2011 \u2014 2015)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the program"
+    },
+    "order": {
+      "type": "number",
+      "description": "Display order",
+      "default": 0
+    }
+  },
+  "required": [
+    "degree",
+    "institution",
+    "period"
+  ]
+}
