@@ -51,7 +51,7 @@ export default function WorkGallery() {
   return (
     <section id="work" className="py-24 md:py-32 px-[7.5vw]">
       <div className="relative mb-16 md:mb-20">
-        <span className="absolute -top-12 left-0 font-heading font-light text-[12vw] md:text-[8vw] leading-none text-foreground/[0.03] tracking-tighter pointer-events-none select-none">
+        <span className="absolute -top-12 left-0 font-heading font-black text-[12vw] md:text-[8vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none">
           WORK
         </span>
         <motion.div
@@ -61,7 +61,7 @@ export default function WorkGallery() {
           transition={{ duration: 0.6 }}
         >
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">Selected work</p>
-          <h2 className="font-heading font-light text-3xl md:text-5xl tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
             A few things <span className="font-semibold">I've shipped</span>
           </h2>
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />

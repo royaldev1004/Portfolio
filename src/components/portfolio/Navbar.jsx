@@ -5,7 +5,7 @@ import { useProfile } from "@/lib/useProfile";
 
 const navLinks = [
   { label: "Work", href: "#work" },
-  { label: "Process", href: "#process" },
+  { label: "Approach", href: "#process" },
   { label: "About", href: "#about" },
   { label: "Skills", href: "#skills" },
   { label: "Experience", href: "#experience" },
@@ -90,7 +90,7 @@ export default function Navbar() {
                 <button
                   key={link.href}
                   onClick={() => scrollTo(link.href)}
-                  className="text-left font-heading text-2xl font-light text-foreground hover:text-primary transition-colors"
+                  className="text-left font-heading text-2xl font-semibold text-foreground hover:text-primary transition-colors"
                 >
                   {link.label}
                 </button>

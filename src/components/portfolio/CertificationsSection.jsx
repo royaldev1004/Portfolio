@@ -33,7 +33,7 @@ export default function CertificationsSection() {
   return (
     <section id="certifications" className="py-24 md:py-32 px-[7.5vw]">
       <div className="relative">
-        <span className="absolute -top-8 left-0 font-heading font-light text-[12vw] md:text-[8vw] leading-none text-foreground/[0.03] tracking-tighter pointer-events-none select-none">
+        <span className="absolute -top-8 left-0 font-heading font-black text-[12vw] md:text-[8vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none">
           CERTS
         </span>
 
@@ -45,7 +45,7 @@ export default function CertificationsSection() {
           className="mb-16 md:mb-20"
         >
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">Verified Credentials</p>
-          <h2 className="font-heading font-light text-3xl md:text-5xl tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
             Certifications &amp; <span className="font-semibold">Licenses</span>
           </h2>
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />

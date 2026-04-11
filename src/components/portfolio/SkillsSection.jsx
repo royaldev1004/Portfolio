@@ -51,7 +51,7 @@ export default function SkillsSection() {
     <section id="skills" className="py-24 md:py-32 px-[7.5vw] bg-card">
       <div className="w-full h-[0.5px] bg-border -mt-24 md:-mt-32 mb-24 md:mb-32" />
       <div className="relative">
-        <span className="absolute -top-8 right-0 font-heading font-light text-[12vw] md:text-[8vw] leading-none text-foreground/[0.03] tracking-tighter pointer-events-none select-none">
+        <span className="absolute -top-8 right-0 font-heading font-black text-[12vw] md:text-[8vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none">
           SKILLS
         </span>
 
@@ -63,7 +63,7 @@ export default function SkillsSection() {
           className="mb-16 md:mb-20"
         >
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">What I use</p>
-          <h2 className="font-heading font-light text-3xl md:text-5xl tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
             My stack &amp; <span className="font-semibold">tooling</span>
           </h2>
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />

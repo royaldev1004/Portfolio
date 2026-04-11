@@ -11,7 +11,7 @@ export default function HeroSection() {
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background macro typography */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-        <span className="absolute -left-[-12vw] top-[15vh] font-heading font-light text-[18vw] leading-none text-foreground/[0.03] tracking-tighter">
+        <span className="absolute -left-[-18vw] top-[15vh] font-heading font-black text-[18vw] leading-none text-foreground/[0.045] tracking-tighter">
           AI
         </span>
       </div>
@@ -43,7 +43,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.55 }}
-              className="font-heading font-light text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] leading-[1.18] tracking-tight text-foreground mt-4 md:mt-5 max-w-[22ch]"
+              className="font-heading font-semibold text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] leading-[1.18] tracking-tight text-foreground mt-4 md:mt-5 max-w-[22ch]"
             >
               {taglinePre}
               <br />
@@ -59,7 +59,7 @@ export default function HeroSection() {
               className="mt-8 max-w-md"
             >
               <div className="w-12 h-[0.5px] bg-primary/40 mb-5" />
-              <p className="text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg text-muted-foreground font-medium leading-relaxed">
                 Senior engineer based in {location}, focused on AI, intelligent automation,
                 and No-Code/Low-Code delivery. I care about clear specs, fast iteration, and systems that keep working after launch.
               </p>

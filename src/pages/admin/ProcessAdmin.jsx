@@ -18,7 +18,7 @@ function ProcessModal({ item, onClose, onSave, saving }) {
         <FormField label="Icon" value={form.iconName} onChange={set("iconName")} options={ICON_OPTIONS} />
       </div>
       <FormField label="Title" value={form.title} onChange={set("title")} placeholder="e.g. Understand" />
-      <FormField label="Subtitle" value={form.subtitle} onChange={set("subtitle")} placeholder="e.g. How I start" />
+      <FormField label="Subtitle" value={form.subtitle} onChange={set("subtitle")} placeholder="e.g. Phase 1 · Scope & risk" />
       <FormField label="Description" value={form.description} onChange={set("description")} multiline placeholder="Brief description of this phase…" />
       <HighlightsInput label="Details (bullet points)" value={form.details} onChange={set("details")} />
       <FormField label="Display Order" value={form.order} onChange={(v) => set("order")(Number(v))} type="number" />

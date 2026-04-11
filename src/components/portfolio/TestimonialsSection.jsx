@@ -45,7 +45,7 @@ export default function TestimonialsSection() {
   return (
     <section id="testimonials" className="py-24 md:py-32 px-[7.5vw]">
       <div className="relative">
-        <span className="absolute -top-8 left-0 font-heading font-light text-[12vw] md:text-[8vw] leading-none text-foreground/[0.03] tracking-tighter pointer-events-none select-none">
+        <span className="absolute -top-8 left-0 font-heading font-black text-[12vw] md:text-[8vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none">
           CLIENTS
         </span>
 
@@ -58,7 +58,7 @@ export default function TestimonialsSection() {
         >
           <div>
             <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">Kind words</p>
-            <h2 className="font-heading font-light text-3xl md:text-5xl tracking-tight text-foreground">
+            <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
               What people <span className="font-semibold">say about working with me</span>
             </h2>
             <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />

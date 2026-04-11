@@ -28,7 +28,7 @@ export default function ContactSection() {
       <div className="w-full h-[0.5px] bg-border -mt-24 md:-mt-32 mb-24 md:mb-32" />
 
       <div className="relative max-w-4xl mx-auto">
-        <span className="absolute -top-10 left-1/2 -translate-x-1/2 font-heading font-light text-[15vw] md:text-[10vw] leading-none text-foreground/[0.03] tracking-tighter pointer-events-none select-none whitespace-nowrap">
+        <span className="absolute -top-10 left-1/2 -translate-x-1/2 font-heading font-black text-[15vw] md:text-[10vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none whitespace-nowrap">
           CONNECT
         </span>
 
@@ -42,10 +42,10 @@ export default function ContactSection() {
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">
             Next Steps
           </p>
-          <h2 className="font-heading font-light text-4xl md:text-6xl tracking-tight text-foreground">
+          <h2 className="font-heading font-bold text-4xl md:text-6xl tracking-tight text-foreground">
             LET'S <span className="font-semibold">BUILD</span>
           </h2>
-          <p className="mt-5 text-muted-foreground max-w-lg mx-auto leading-relaxed">
+          <p className="mt-5 text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
             Have a project in mind? I&apos;d love to hear about it. Let&apos;s explore
             how we can create something remarkable together.
           </p>
