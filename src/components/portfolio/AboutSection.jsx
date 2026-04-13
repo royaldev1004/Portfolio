@@ -85,7 +85,7 @@ export default function AboutSection() {
             transition={{ duration: 0.7 }}
             className="md:col-span-5"
           >
-            <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[420px] md:h-[420px] rounded-xl overflow-hidden mx-auto bg-card border border-border/50">
+            <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[340px] md:h-[420px] rounded-xl overflow-hidden mx-auto bg-card border border-border/50">
               <img src={workImageUrl} alt={`${name} — ${location}`} className="w-full h-full" />
             </div>
             <div className="mt-4 p-4 rounded-xl border border-border/60 bg-card flex items-center gap-4">

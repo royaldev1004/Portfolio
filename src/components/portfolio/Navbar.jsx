@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import { useProfile } from "@/lib/useProfile";
+import { useTheme } from "@/lib/useTheme";
 
 const navLinks = [
   { label: "Work", href: "#work" },
@@ -14,8 +15,10 @@ const navLinks = [
 
 export default function Navbar() {
   const { name } = useProfile();
+  const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isDark = theme === "dark";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -60,20 +63,47 @@ export default function Navbar() {
               </button>
             ))}
             <button
+              onClick={toggle}
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={isDark ? "sun" : "moon"}
+                  initial={{ opacity: 0, rotate: -30, scale: 0.7 }}
+                  animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                  exit={{ opacity: 0, rotate: 30, scale: 0.7 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center justify-center"
+                >
+                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </motion.span>
+              </AnimatePresence>
+            </button>
+            <button
               onClick={() => scrollTo("#contact")}
-              className="ml-2 px-5 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors duration-300"
+              className="px-5 py-2 bg-primary text-primary-foreground rounded-full text-sm font-medium hover:bg-primary/90 transition-colors duration-300"
             >
               Let's Talk
             </button>
           </div>
 
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-foreground"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={toggle}
+              aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+              className="w-9 h-9 flex items-center justify-center rounded-full border border-border/60 text-muted-foreground hover:text-foreground transition-all duration-300"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="p-2 text-foreground"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </motion.nav>
 
@@ -100,6 +130,15 @@ export default function Navbar() {
                 className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-full text-base font-medium w-fit"
               >
                 Let's Talk
+              </button>
+              <button
+                onClick={toggle}
+                className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors mt-2"
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <span className="font-mono-caption uppercase">
+                  {isDark ? "Light mode" : "Dark mode"}
+                </span>
               </button>
             </div>
           </motion.div>
