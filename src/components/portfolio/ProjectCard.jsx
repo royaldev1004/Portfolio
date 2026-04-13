@@ -25,7 +25,16 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-60px" }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
-        className={`break-inside-avoid relative ${isNotable ? "" : "rounded-xl overflow-hidden bg-card border border-border/50"}`}
+        whileHover={
+          isNotable
+            ? undefined
+            : { y: -4, transition: { type: "spring", stiffness: 400, damping: 28 } }
+        }
+        className={`break-inside-avoid relative group cursor-pointer ${
+          isNotable
+            ? ""
+            : "rounded-xl overflow-hidden bg-card border border-border/50 shadow-sm transition-shadow duration-300 hover:shadow-xl hover:shadow-primary/20 hover:border-primary/40"
+        }`}
       >
         {isNotable ? (
           <div className={`relative ${featured ? "pb-24 md:pb-32" : "pb-20 md:pb-24"}`}>
@@ -39,12 +48,12 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
                 }
               }}
               onClick={() => setModalOpen(true)}
-              className={`relative overflow-hidden rounded-2xl border border-border/60 cursor-zoom-in ${featured ? "h-[300px] md:h-[420px]" : "h-[260px] md:h-[330px]"}`}
+              className={`relative overflow-hidden rounded-2xl border border-border/60 cursor-pointer transition-all duration-300 ease-out hover:border-primary/45 hover:shadow-xl hover:shadow-primary/15 group/image ${featured ? "h-[300px] md:h-[420px]" : "h-[260px] md:h-[330px]"}`}
             >
               <img
                 src={project.image}
                 alt={`${project.title} — ${project.description}`}
-                className="w-full h-full object-cover opacity-60"
+                className="w-full h-full object-cover opacity-60 transition-transform duration-500 ease-out group-hover/image:scale-[1.04]"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-slate-950/65 to-slate-950/85" />
             </div>
@@ -133,12 +142,12 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
                 }
               }}
               onClick={() => setModalOpen(true)}
-              className={`relative overflow-hidden cursor-zoom-in ${imageHeightClass}`}
+              className={`relative overflow-hidden cursor-pointer transition-transform duration-300 ease-out group-hover:brightness-[1.03] ${imageHeightClass}`}
             >
               <img
                 src={project.image}
                 alt={`${project.title} — ${project.description}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
               />
             </div>
           <motion.div
