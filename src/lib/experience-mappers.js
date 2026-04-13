@@ -63,6 +63,7 @@ export function mapProjectRow(row) {
     role: row.role ?? "",
     description: row.description ?? "",
     image: row.image_url ?? "",
+    url: row.external_url ?? "",
     tall: Boolean(row.tall),
     order: row.sort_order ?? 0,
   };
@@ -75,6 +76,7 @@ export function projectToSupabasePayload(form) {
     role: form.role ?? "",
     description: form.description ?? "",
     image_url: form.image ?? "",
+    external_url: form.url ?? "",
     tall: Boolean(form.tall),
     sort_order: Number(form.order) || 0,
   };

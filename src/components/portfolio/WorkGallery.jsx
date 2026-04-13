@@ -5,31 +5,77 @@ import ProjectCard from "./ProjectCard";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { mapProjectRow } from "@/lib/experience-mappers";
 
+// Card images: each site’s Open Graph / marketing hero asset (same URLs stored in Supabase `image_url` + `external_url`).
 const FALLBACK_PROJECTS = [
   {
-    id: "1", title: "Horizon Platform", category: "Brand & product", role: "I led design",
-    description: "I led the end-to-end brand and product visuals for a fintech platform serving 2M+ users.",
-    image: "https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/af7081c85_generated_2534d48f.png", tall: false,
+    id: "1",
+    title: "Ambience Healthcare",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "AI-powered clinical documentation and workflow tools that help clinicians spend less time on the keyboard and more time with patients.",
+    image:
+      "https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png",
+    tall: false,
+    url: "https://www.ambiencehealthcare.com/",
   },
   {
-    id: "2", title: "Prism Collection", category: "Campaign", role: "I directed creative",
-    description: "I directed a visual campaign exploring light, material, and form — recognized with industry awards.",
-    image: "https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/52e4bd640_generated_3217943e.png", tall: true,
+    id: "2",
+    title: "Commure",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "Healthcare operations and developer infrastructure — connecting systems so care teams can move faster with safer, more interoperable data.",
+    image:
+      "https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg",
+    tall: true,
+    url: "https://www.commure.com/",
   },
   {
-    id: "3", title: "Studio Meridian", category: "Product UX", role: "I owned UX",
-    description: "I redesigned the full product experience for a luxury real estate app.",
-    image: "https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/8be4e5753_generated_d6bef9fd.png", tall: true,
+    id: "3",
+    title: "Incuto",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "Platform work for community-focused financial services — improving access to fair banking and lending through modern software.",
+    image:
+      "https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w",
+    tall: true,
+    url: "https://www.incuto.com/",
   },
   {
-    id: "4", title: "Glass Atelier", category: "Web & identity", role: "I consulted",
-    description: "I built the digital presence and visual system for an award-winning architecture studio.",
-    image: "https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/e289e4622_generated_e979fdb5.png", tall: false,
+    id: "4",
+    title: "Unit21",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "Risk and fraud operations tooling — helping teams detect suspicious activity, investigate cases, and stay ahead of financial crime.",
+    image:
+      "https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png",
+    tall: false,
+    url: "https://www.unit21.ai/",
   },
   {
-    id: "5", title: "Form & Void", category: "Art direction", role: "I art-directed",
-    description: "I led art direction for a contemporary gallery exhibition — concept through execution.",
-    image: "https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/dcac31ba6_generated_d918eaa1.png", tall: true,
+    id: "5",
+    title: "Babyscripts",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "Remote pregnancy care — connecting patients and providers with monitoring and education to improve maternal health outcomes.",
+    image: "https://babyscripts.com/hubfs/bloodpressure_heroimage.png",
+    tall: true,
+    url: "https://www.babyscripts.com/",
+  },
+  {
+    id: "6",
+    title: "Panorama Education",
+    category: "Previous role",
+    role: "Engineering",
+    description:
+      "K–12 analytics and surveys — giving schools actionable insight into student success, well-being, and engagement.",
+    image: "https://www.panoramaed.com/hubfs/panorama-education-district-view.png",
+    tall: false,
+    url: "https://www.panoramaed.com/",
   },
 ];
 

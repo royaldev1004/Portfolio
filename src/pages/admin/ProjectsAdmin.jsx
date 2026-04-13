@@ -6,7 +6,7 @@ import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage, FormField, ToggleField, ItemList, Modal } from "./shared/AdminComponents";
 
-const EMPTY = { title: "", category: "", role: "", description: "", image: "", tall: false, order: 0 };
+const EMPTY = { title: "", category: "", role: "", description: "", image: "", url: "", tall: false, order: 0 };
 
 function ProjectModal({ item, onClose, onSave, saving }) {
   const [form, setForm] = useState(item || EMPTY);
@@ -18,6 +18,7 @@ function ProjectModal({ item, onClose, onSave, saving }) {
       <FormField label="Role" value={form.role} onChange={set("role")} placeholder="e.g. I led design" />
       <FormField label="Description" value={form.description} onChange={set("description")} multiline placeholder="Short description of this project" />
       <FormField label="Image URL" value={form.image} onChange={set("image")} placeholder="https://…" />
+      <FormField label="Company / project URL" value={form.url} onChange={set("url")} placeholder="https://…" />
       <ToggleField label="Tall card (taller image)" value={form.tall} onChange={set("tall")} />
       <FormField label="Display Order" value={form.order} onChange={(v) => set("order")(Number(v))} type="number" />
       <div className="flex justify-end gap-3 pt-2">

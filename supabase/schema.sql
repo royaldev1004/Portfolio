@@ -34,10 +34,13 @@ create table if not exists projects (
   role text not null default '',
   description text default '',
   image_url text default '',
+  external_url text default '',
   tall boolean default false,
   sort_order int default 0,
   created_at timestamptz default now()
 );
+
+alter table projects add column if not exists external_url text default '';
 
 create table if not exists testimonials (
   id uuid primary key default gen_random_uuid(),
@@ -171,13 +174,14 @@ insert into about_stats (value, label, sort_order) values
   ('30+', 'Clients Worldwide',     2),
   ('4',   'Core Specializations',  3);
 
--- ── Projects ───────────────────────────────────────────────────
-insert into projects (title, category, role, description, image_url, tall, sort_order) values
-  ('Horizon Platform',  'Brand & product', 'I led design',       'I led the end-to-end brand and product visuals for a fintech platform serving 2M+ users.',                                          'https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/af7081c85_generated_2534d48f.png', false, 0),
-  ('Prism Collection',  'Campaign',        'I directed creative', 'I directed a visual campaign exploring light, material, and form — recognized with industry awards.',                                'https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/52e4bd640_generated_3217943e.png', true,  1),
-  ('Studio Meridian',   'Product UX',      'I owned UX',          'I redesigned the full product experience for a luxury real estate app.',                                                            'https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/8be4e5753_generated_d6bef9fd.png', true,  2),
-  ('Glass Atelier',     'Web & identity',  'I consulted',         'I built the digital presence and visual system for an award-winning architecture studio.',                                           'https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/e289e4622_generated_e979fdb5.png', false, 3),
-  ('Form & Void',       'Art direction',   'I art-directed',      'I led art direction for a contemporary gallery exhibition — concept through execution.',                                             'https://media.base44.com/images/public/69d53c1502f1beb4382c2dd0/dcac31ba6_generated_d918eaa1.png', true,  4);
+-- ── Projects (images: each employer’s OG / marketing asset; external_url = company site) ──
+insert into projects (title, category, role, description, image_url, external_url, tall, sort_order) values
+  ('Ambience Healthcare', 'Previous role', 'Engineering', 'AI-powered clinical documentation and workflow tools that help clinicians spend less time on the keyboard and more time with patients.', 'https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png', 'https://www.ambiencehealthcare.com/', false, 0),
+  ('Commure',             'Previous role', 'Engineering', 'Healthcare operations and developer infrastructure — connecting systems so care teams can move faster with safer, more interoperable data.', 'https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg', 'https://www.commure.com/', true, 1),
+  ('Incuto',              'Previous role', 'Engineering', 'Platform work for community-focused financial services — improving access to fair banking and lending through modern software.', 'https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w', 'https://www.incuto.com/', true, 2),
+  ('Unit21',              'Previous role', 'Engineering', 'Risk and fraud operations tooling — helping teams detect suspicious activity, investigate cases, and stay ahead of financial crime.', 'https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png', 'https://www.unit21.ai/', false, 3),
+  ('Babyscripts',         'Previous role', 'Engineering', 'Remote pregnancy care — connecting patients and providers with monitoring and education to improve maternal health outcomes.', 'https://babyscripts.com/hubfs/bloodpressure_heroimage.png', 'https://www.babyscripts.com/', true, 4),
+  ('Panorama Education',  'Previous role', 'Engineering', 'K–12 analytics and surveys — giving schools actionable insight into student success, well-being, and engagement.', 'https://www.panoramaed.com/hubfs/panorama-education-district-view.png', 'https://www.panoramaed.com/', false, 5);
 
 -- ── Testimonials ───────────────────────────────────────────────
 insert into testimonials (name, role, avatar, rating, text, sort_order) values
