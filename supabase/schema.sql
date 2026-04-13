@@ -35,12 +35,16 @@ create table if not exists projects (
   description text default '',
   image_url text default '',
   external_url text default '',
+  project_tier text not null default 'noteworthy',
+  tech_tags jsonb default '[]',
   tall boolean default false,
   sort_order int default 0,
   created_at timestamptz default now()
 );
 
 alter table projects add column if not exists external_url text default '';
+alter table projects add column if not exists project_tier text not null default 'noteworthy';
+alter table projects add column if not exists tech_tags jsonb default '[]';
 
 create table if not exists testimonials (
   id uuid primary key default gen_random_uuid(),
@@ -149,11 +153,17 @@ create policy "auth write site_settings"    on site_settings    for all using (a
 --  so only run the seed section once.)
 
 -- ── Profile & Site Settings ───────────────────────────────────
+-- Profile/hero defaults: keep aligned with src/lib/site-settings-defaults.js (PROFILE_SITE_SETTINGS_DEFAULTS).
+-- About card defaults: keep aligned with src/data/about-site-settings-fallback.js (ABOUT_SITE_SETTINGS_FALLBACK).
 insert into site_settings (key, value) values
   ('profile_name',           'Nguyen Hiep'),
   ('profile_location',       'Vietnam'),
   ('profile_email',          'fullmaster240@gmail.com'),
   ('profile_role_title',     'Senior AI & Automation Engineer'),
+  ('hero_role_titles',       'Senior AI & Automation Engineer
+No-Code/Low-Code & CMS Developer
+AI Voice Agent Developer
+Full Stack Developer'),
   ('profile_avatar_url',     '/nguyen-hiep.png'),
   ('profile_work_image_url', '/Work.png'),
   ('hero_tagline_pre',       'I build'),
@@ -164,7 +174,12 @@ insert into site_settings (key, value) values
   ('about_bio_3', 'On the automation side, I architect end-to-end workflows using n8n and Make.com, integrate CRM ecosystems with GoHighLevel (GHL), and build intelligent AI Voice Agents with Retell, Vapi, and ElevenLabs. Every system I build is designed to operate autonomously, scale effortlessly, and deliver measurable impact.'),
   ('about_available',        'true'),
   ('about_available_text',   'I''m taking new work'),
-  ('about_available_sub',    'Freelance & consulting')
+  ('about_available_sub',    'Freelance & consulting'),
+  ('about_intro', 'Hello! My name is {name}, and I am passionate about creating impactful, innovative digital experiences that live on the internet.'),
+  ('about_section_number',   '01.'),
+  ('about_section_title',    'About Me'),
+  ('about_recent_work_label', 'Recent Work'),
+  ('about_recent_work_project_ids', '[]')
 on conflict (key) do nothing;
 
 -- ── About Stats ────────────────────────────────────────────────
@@ -175,13 +190,14 @@ insert into about_stats (value, label, sort_order) values
   ('4',   'Core Specializations',  3);
 
 -- ── Projects (images: each employer’s OG / marketing asset; external_url = company site) ──
-insert into projects (title, category, role, description, image_url, external_url, tall, sort_order) values
-  ('Ambience Healthcare', 'Previous role', 'Engineering', 'AI-powered clinical documentation and workflow tools that help clinicians spend less time on the keyboard and more time with patients.', 'https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png', 'https://www.ambiencehealthcare.com/', false, 0),
-  ('Commure',             'Previous role', 'Engineering', 'Healthcare operations and developer infrastructure — connecting systems so care teams can move faster with safer, more interoperable data.', 'https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg', 'https://www.commure.com/', true, 1),
-  ('Incuto',              'Previous role', 'Engineering', 'Platform work for community-focused financial services — improving access to fair banking and lending through modern software.', 'https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w', 'https://www.incuto.com/', true, 2),
-  ('Unit21',              'Previous role', 'Engineering', 'Risk and fraud operations tooling — helping teams detect suspicious activity, investigate cases, and stay ahead of financial crime.', 'https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png', 'https://www.unit21.ai/', false, 3),
-  ('Babyscripts',         'Previous role', 'Engineering', 'Remote pregnancy care — connecting patients and providers with monitoring and education to improve maternal health outcomes.', 'https://babyscripts.com/hubfs/bloodpressure_heroimage.png', 'https://www.babyscripts.com/', true, 4),
-  ('Panorama Education',  'Previous role', 'Engineering', 'K–12 analytics and surveys — giving schools actionable insight into student success, well-being, and engagement.', 'https://www.panoramaed.com/hubfs/panorama-education-district-view.png', 'https://www.panoramaed.com/', false, 5);
+-- Dev fallback: src/data/portfolio-projects-fallback.js (FALLBACK_PROJECTS) mirrors this seed.
+insert into projects (title, category, role, description, image_url, external_url, project_tier, tech_tags, tall, sort_order) values
+  ('Ambience Healthcare', 'Previous role', 'Engineering', 'AI-powered clinical documentation and workflow tools that help clinicians spend less time on the keyboard and more time with patients.', 'https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png', 'https://www.ambiencehealthcare.com/', 'notable', '["Ambient AI","Clinical Documentation","EHR"]', false, 0),
+  ('Commure',             'Previous role', 'Engineering', 'Healthcare operations and developer infrastructure — connecting systems so care teams can move faster with safer, more interoperable data.', 'https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg', 'https://www.commure.com/', 'notable', '["RCM","Ambient AI","Healthcare Ops"]', true, 1),
+  ('Incuto',              'Previous role', 'Engineering', 'Platform work for community-focused financial services — improving access to fair banking and lending through modern software.', 'https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w', 'https://www.incuto.com/', 'notable', '["Fintech","Community Lending","Payments"]', true, 2),
+  ('Unit21',              'Previous role', 'Engineering', 'Risk and fraud operations tooling — helping teams detect suspicious activity, investigate cases, and stay ahead of financial crime.', 'https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png', 'https://www.unit21.ai/', 'noteworthy', '["Fraud","AML","Risk Infrastructure"]', false, 3),
+  ('Babyscripts',         'Previous role', 'Engineering', 'Remote pregnancy care — connecting patients and providers with monitoring and education to improve maternal health outcomes.', 'https://babyscripts.com/hubfs/bloodpressure_heroimage.png', 'https://www.babyscripts.com/', 'noteworthy', '["Digital Health","Remote Monitoring","Maternal Care"]', true, 4),
+  ('Panorama Education',  'Previous role', 'Engineering', 'K–12 analytics and surveys — giving schools actionable insight into student success, well-being, and engagement.', 'https://www.panoramaed.com/hubfs/panorama-education-district-view.png', 'https://www.panoramaed.com/', 'noteworthy', '["EdTech","MTSS","Student Analytics"]', false, 5);
 
 -- ── Testimonials ───────────────────────────────────────────────
 insert into testimonials (name, role, avatar, rating, text, sort_order) values

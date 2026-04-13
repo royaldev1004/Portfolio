@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { mapAboutStatRow, aboutStatToSupabasePayload, settingsToObject } from "@/lib/experience-mappers";
+import {
+  mapAboutStatRow,
+  mapProjectRow,
+  aboutStatToSupabasePayload,
+  parseAboutRecentWorkSlots,
+  serializeAboutRecentWorkSlots,
+  settingsToObject,
+} from "@/lib/experience-mappers";
 import { Check, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { AdminPage, FormField, ToggleField, ItemList, Modal } from "./shared/AdminComponents";
+import { FormField, ToggleField, ItemList, Modal } from "./shared/AdminComponents";
+
+const selectCls =
+  "w-full text-sm bg-background border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors";
 
 const EMPTY_STAT = { value: "", label: "", order: 0 };
 
@@ -24,6 +35,135 @@ function StatModal({ item, onClose, onSave, saving }) {
         </button>
       </div>
     </Modal>
+  );
+}
+
+function RecentWorkEditor() {
+  const qc = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [slots, setSlots] = useState(null);
+
+  const { data: settings, isLoading: loadingSettings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("site_settings").select("*");
+      if (error) throw error;
+      return settingsToObject(data);
+    },
+  });
+
+  const { data: projects = [], isLoading: loadingProjects } = useQuery({
+    queryKey: ["portfolio", "projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data || []).map(mapProjectRow);
+    },
+  });
+
+  const baseSlots = useMemo(
+    () => parseAboutRecentWorkSlots(settings?.about_recent_work_project_ids),
+    [settings?.about_recent_work_project_ids],
+  );
+  const displaySlots = slots ?? baseSlots;
+  const dirty = slots !== null;
+
+  const setSlot = (index, value) => {
+    setSlots((prev) => {
+      const next = [...(prev ?? baseSlots)];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const save = async () => {
+    if (!dirty) return;
+    setSaving(true);
+    try {
+      const value = serializeAboutRecentWorkSlots(slots);
+      const { error } = await supabase
+        .from("site_settings")
+        .upsert({ key: "about_recent_work_project_ids", value }, { onConflict: "key" });
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["site-settings"] });
+      await qc.invalidateQueries({ queryKey: ["portfolio", "about"] });
+      toast.success("Recent work selection saved");
+      setSlots(null);
+    } catch (e) {
+      toast.error(e?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loadingSettings) {
+    return (
+      <div className="flex items-center gap-3 py-8 text-muted-foreground">
+        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+        <span className="text-sm">Loading…</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-border/70 bg-card p-6 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <p className="font-heading font-semibold text-sm text-foreground">Recent work (About page)</p>
+          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+            Choose up to three projects for the About card. Titles, descriptions, and links come from each project — edit them in{" "}
+            <Link to="/admin/projects" className="text-primary hover:underline underline-offset-2">
+              Projects
+            </Link>
+            . Leave a row on <span className="text-foreground/90">Auto</span> to fill from your first notable projects (or all projects if needed).
+          </p>
+        </div>
+        {dirty && (
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="shrink-0 flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save recent work
+          </button>
+        )}
+      </div>
+
+      {loadingProjects ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          Loading projects…
+        </div>
+      ) : projects.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-2">
+          No projects yet. Add some under <Link to="/admin/projects" className="text-primary hover:underline">Projects</Link>.
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i}>
+              <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-widest">
+                About card — project {i + 1}
+              </label>
+              <select
+                className={selectCls}
+                value={displaySlots[i] || ""}
+                onChange={(e) => setSlot(i, e.target.value)}
+              >
+                <option value="">Auto (first notable projects)</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -79,6 +219,24 @@ function BioEditor() {
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save changes
           </button>
         )}
+      </div>
+      <div className="pt-1 pb-2 border-b border-border/50 space-y-3">
+        <p className="text-xs font-medium text-foreground">About card (public page)</p>
+        <p className="text-[11px] text-muted-foreground leading-relaxed">
+          Use <code className="bg-muted px-1 rounded">{`{name}`}</code> in the intro line where the highlighted name should appear.
+        </p>
+        <FormField
+          label="Intro line (with optional {name})"
+          value={current.about_intro ?? ""}
+          onChange={set("about_intro")}
+          multiline
+          placeholder="Hello! My name is {name}, and I am passionate about…"
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <FormField label="Section number" value={current.about_section_number ?? ""} onChange={set("about_section_number")} placeholder="01." />
+          <FormField label="Section title" value={current.about_section_title ?? ""} onChange={set("about_section_title")} placeholder="About Me" />
+        </div>
+        <FormField label="Recent Work divider label" value={current.about_recent_work_label ?? ""} onChange={set("about_recent_work_label")} placeholder="Recent Work" />
       </div>
       <FormField label="Bio paragraph 1" value={current.about_bio_1 ?? ""} onChange={set("about_bio_1")} multiline />
       <FormField label="Bio paragraph 2" value={current.about_bio_2 ?? ""} onChange={set("about_bio_2")} multiline />
@@ -153,11 +311,13 @@ export default function AboutAdmin() {
       <div>
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary mb-2">Manage</p>
         <h1 className="font-heading font-semibold text-2xl md:text-3xl text-foreground">About &amp; Stats</h1>
-        <p className="text-sm text-muted-foreground mt-1">Edit your bio text, availability status, and stats cards.</p>
+        <p className="text-sm text-muted-foreground mt-1">Edit your bio, About card copy, recent-work picks, availability, and stats.</p>
         <div className="w-10 h-[0.5px] bg-primary/40 mt-4" />
       </div>
 
       <BioEditor />
+
+      <RecentWorkEditor />
 
       <div>
         <div className="flex items-center justify-between mb-4">

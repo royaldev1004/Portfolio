@@ -56,6 +56,11 @@ export function educationToSupabasePayload(form) {
 // ── Projects ─────────────────────────────────────────────────
 
 export function mapProjectRow(row) {
+  let tags = row.tech_tags;
+  if (typeof tags === "string") {
+    try { tags = JSON.parse(tags); } catch { tags = []; }
+  }
+  if (!Array.isArray(tags)) tags = [];
   return {
     id: row.id,
     title: row.title,
@@ -64,6 +69,8 @@ export function mapProjectRow(row) {
     description: row.description ?? "",
     image: row.image_url ?? "",
     url: row.external_url ?? "",
+    tier: row.project_tier ?? "noteworthy",
+    tags,
     tall: Boolean(row.tall),
     order: row.sort_order ?? 0,
   };
@@ -77,6 +84,8 @@ export function projectToSupabasePayload(form) {
     description: form.description ?? "",
     image_url: form.image ?? "",
     external_url: form.url ?? "",
+    project_tier: form.tier ?? "noteworthy",
+    tech_tags: Array.isArray(form.tags) ? form.tags : [],
     tall: Boolean(form.tall),
     sort_order: Number(form.order) || 0,
   };
@@ -214,4 +223,65 @@ export function aboutStatToSupabasePayload(form) {
 
 export function settingsToObject(rows) {
   return Object.fromEntries((rows || []).map((r) => [r.key, r.value]));
+}
+
+/** Three slot values for About “Recent work” pickers (empty = use auto fill). */
+export function parseAboutRecentWorkSlots(raw) {
+  let ids = [];
+  try {
+    ids = JSON.parse(raw || "[]");
+  } catch {
+    ids = [];
+  }
+  if (!Array.isArray(ids)) ids = [];
+  return [0, 1, 2].map((i) => (ids[i] != null && String(ids[i]).trim() !== "" ? String(ids[i]) : ""));
+}
+
+export function serializeAboutRecentWorkSlots(slots) {
+  const raw = [0, 1, 2].map((i) => (slots[i] && String(slots[i]).trim() ? String(slots[i]).trim() : ""));
+  const seen = new Set();
+  const ordered = [];
+  for (const id of raw) {
+    if (!id) continue;
+    if (!seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  }
+  if (!ordered.length) return "[]";
+  while (ordered.length < 3) ordered.push("");
+  return JSON.stringify(ordered.slice(0, 3));
+}
+
+export function parseAboutRecentWorkIds(raw) {
+  const slots = parseAboutRecentWorkSlots(raw).filter(Boolean);
+  const seen = new Set();
+  const unique = [];
+  for (const id of slots) {
+    if (!seen.has(id)) {
+      seen.add(id);
+      unique.push(id);
+    }
+  }
+  return unique;
+}
+
+/** Resolve up to 3 projects for About: ordered by saved ids, then fill from notable / all. */
+export function resolveRecentWorkProjects(projects, idsJson) {
+  const ids = parseAboutRecentWorkIds(idsJson);
+  const byId = new Map(projects.map((p) => [String(p.id), p]));
+  const picked = ids.map((id) => byId.get(String(id))).filter(Boolean);
+  if (picked.length >= 3) return picked.slice(0, 3);
+  const notable = projects.filter((p) => p.tier === "notable");
+  const pool = notable.length >= 3 ? notable : projects;
+  const seen = new Set(picked.map((p) => String(p.id)));
+  for (const p of pool) {
+    if (picked.length >= 3) break;
+    const id = String(p.id);
+    if (!seen.has(id)) {
+      picked.push(p);
+      seen.add(id);
+    }
+  }
+  return picked.slice(0, 3);
 }

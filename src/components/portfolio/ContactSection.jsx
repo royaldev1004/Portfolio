@@ -1,148 +1,139 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Send, ArrowUpRight, Mail } from "lucide-react";
+import { AtSign, Mail, MessageSquare, Send, User } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/lib/useProfile";
 
 export default function ContactSection() {
   const { email: SITE_EMAIL } = useProfile();
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
-      toast.error("Please fill in all fields.");
+      toast.error("Please fill in all required fields.");
       return;
     }
     setSending(true);
-    // Simulate send
     await new Promise((r) => setTimeout(r, 1200));
     toast.success("Message sent successfully!");
-    setForm({ name: "", email: "", message: "" });
+    setForm({ name: "", email: "", subject: "", message: "" });
     setSending(false);
   };
 
   return (
-    <section id="contact" className="py-24 md:py-32 px-[7.5vw] bg-card">
-      <div className="w-full h-[0.5px] bg-border -mt-24 md:-mt-32 mb-24 md:mb-32" />
+    <section id="contact" className="py-24 md:py-32 px-[7.5vw] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.12),transparent_55%)]" />
 
-      <div className="relative max-w-4xl mx-auto">
-        <span className="absolute -top-10 left-1/2 -translate-x-1/2 font-heading font-black text-[15vw] md:text-[10vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none whitespace-nowrap">
-          CONNECT
-        </span>
-
+      <div className="relative max-w-6xl mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-10 md:mb-12"
         >
-          <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">
-            Next Steps
-          </p>
-          <h2 className="font-heading font-bold text-4xl md:text-6xl tracking-tight text-foreground">
-            LET'S <span className="font-semibold">BUILD</span>
+          <h2 className="font-heading font-bold text-4xl md:text-5xl text-foreground">
+            Get <span className="text-primary">In Touch</span>
           </h2>
-          <p className="mt-5 text-muted-foreground font-medium max-w-lg mx-auto leading-relaxed">
-            Have a project in mind? I&apos;d love to hear about it. Let&apos;s explore
-            how we can create something remarkable together.
+          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            I&apos;m always open to new ideas and collaborations. If you&apos;re planning a product,
+            need engineering support, or want to discuss opportunities, feel free to reach out.
           </p>
-          <a
-            href={`mailto:${SITE_EMAIL}`}
-            className="mt-6 inline-flex items-center gap-2 text-sm font-mono text-primary hover:underline underline-offset-4"
-          >
-            <Mail className="w-4 h-4 shrink-0" />
-            {SITE_EMAIL}
-          </a>
-          <div className="w-12 h-[0.5px] bg-primary/40 mt-6 mx-auto" />
         </motion.div>
 
-        <motion.form
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          onSubmit={handleSubmit}
-          className="space-y-8 max-w-xl mx-auto"
-        >
-          <div className="space-y-6">
-            <div>
-              <label className="font-mono-caption uppercase text-muted-foreground mb-2 block">
-                Name
-              </label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Your full name"
-                className="w-full bg-transparent border-b border-border pb-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors duration-300 text-lg"
-              />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            onSubmit={handleSubmit}
+            className="rounded-3xl border border-primary/25 bg-card/70 backdrop-blur-md p-6 md:p-7 shadow-xl shadow-primary/10"
+          >
+            <h3 className="font-heading font-semibold text-3xl text-foreground mb-6">Send me a message</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="relative">
+                <User className="w-4 h-4 text-primary absolute left-3 top-3.5" />
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Your Name *"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-background/60 border border-border focus:border-primary/70 focus:outline-none text-sm"
+                />
+              </div>
+              <div className="relative">
+                <AtSign className="w-4 h-4 text-primary absolute left-3 top-3.5" />
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="Your Email *"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-background/60 border border-border focus:border-primary/70 focus:outline-none text-sm"
+                />
+              </div>
+              <div className="relative sm:col-span-2">
+                <MessageSquare className="w-4 h-4 text-primary absolute left-3 top-3.5" />
+                <input
+                  type="text"
+                  value={form.subject}
+                  onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
+                  placeholder="Subject"
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-background/60 border border-border focus:border-primary/70 focus:outline-none text-sm"
+                />
+              </div>
+              <div className="relative sm:col-span-2">
+                <MessageSquare className="w-4 h-4 text-primary absolute left-3 top-3.5" />
+                <textarea
+                  value={form.message}
+                  onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+                  placeholder="Your Message *"
+                  rows={5}
+                  className="w-full pl-10 pr-3 py-3 rounded-lg bg-background/60 border border-border focus:border-primary/70 focus:outline-none text-sm resize-none"
+                />
+              </div>
             </div>
-
-            <div>
-              <label className="font-mono-caption uppercase text-muted-foreground mb-2 block">
-                Email
-              </label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder={SITE_EMAIL}
-                className="w-full bg-transparent border-b border-border pb-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors duration-300 text-lg"
-              />
-            </div>
-
-            <div>
-              <label className="font-mono-caption uppercase text-muted-foreground mb-2 block">
-                Message
-              </label>
-              <textarea
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-                placeholder="Tell me about your project..."
-                rows={4}
-                className="w-full bg-transparent border-b border-border pb-3 text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors duration-300 text-lg resize-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-center pt-4">
             <button
               type="submit"
               disabled={sending}
-              className="group flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 disabled:opacity-60"
+              className="mt-5 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors disabled:opacity-60"
             >
-              {sending ? (
-                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              {sending ? "Sending..." : "Send Message"}
+              {sending ? <span className="animate-pulse">Sending...</span> : "Send Message"}
+              <Send className="w-4 h-4" />
             </button>
-          </div>
-        </motion.form>
+          </motion.form>
 
-        {/* Social links */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 flex flex-wrap justify-center gap-6"
-        >
-          {["LinkedIn", "Dribbble", "Twitter", "GitHub"].map((platform) => (
-            <a
-              key={platform}
-              href="#"
-              className="group flex items-center gap-1 font-mono-caption uppercase text-muted-foreground hover:text-primary transition-colors duration-300"
-            >
-              {platform}
-              <ArrowUpRight className="w-3 h-3 opacity-0 -translate-y-0.5 translate-x-0.5 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300" />
-            </a>
-          ))}
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="rounded-3xl border border-border/70 bg-card/70 backdrop-blur-md p-6 md:p-7 shadow-xl shadow-primary/10"
+          >
+            <h3 className="font-heading font-semibold text-3xl text-foreground mb-6">Contact Information</h3>
+            <p className="text-muted-foreground leading-relaxed mb-8">
+              Feel free to reach out through these channels. I&apos;m always eager to discuss new
+              opportunities and ideas.
+            </p>
+
+            <div className="space-y-4">
+              <a
+                href={`mailto:${SITE_EMAIL}`}
+                className="flex items-center gap-4 rounded-xl border border-border/80 bg-background/50 px-4 py-3 hover:border-primary/40 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">Email</p>
+                  <p className="text-sm text-muted-foreground">{SITE_EMAIL}</p>
+                </div>
+              </a>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

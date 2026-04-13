@@ -1,14 +1,47 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "./Width.css";
 import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useProfile } from "@/lib/useProfile";
 
 export default function HeroSection() {
-  const { name, location, avatarUrl, taglinePre, taglineHighlight, taglinePost } = useProfile();
+  const { name, location, avatarUrl, roleTitle, heroRoles, taglinePre, taglineHighlight, taglinePost } = useProfile();
+  const [typedRole, setTypedRole] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [roleIndex, setRoleIndex] = useState(0);
+  const roleOptions = useMemo(
+    () => (Array.isArray(heroRoles) && heroRoles.length ? heroRoles : [roleTitle || "Senior AI & Automation Engineer"]),
+    [heroRoles, roleTitle],
+  );
+
+  useEffect(() => {
+    const roleText = roleOptions[roleIndex];
+    let timeoutId;
+
+    if (!isDeleting && typedRole.length < roleText.length) {
+      timeoutId = setTimeout(() => {
+        setTypedRole(roleText.slice(0, typedRole.length + 1));
+      }, 70);
+    } else if (!isDeleting && typedRole.length === roleText.length) {
+      timeoutId = setTimeout(() => setIsDeleting(true), 1500);
+    } else if (isDeleting && typedRole.length > 0) {
+      timeoutId = setTimeout(() => {
+        setTypedRole(roleText.slice(0, typedRole.length - 1));
+      }, 45);
+    } else if (isDeleting && typedRole.length === 0) {
+      timeoutId = setTimeout(() => {
+        setIsDeleting(false);
+        setRoleIndex((prev) => (prev + 1) % roleOptions.length);
+      }, 350);
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [typedRole, isDeleting, roleIndex, roleOptions]);
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.12),transparent_55%)]" />
+
       {/* Background macro typography */}
       <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
         <span className="absolute -left-[-18vw] top-[15vh] font-heading font-black text-[18vw] leading-none text-foreground/[0.045] tracking-tighter">
@@ -53,16 +86,48 @@ export default function HeroSection() {
             </motion.h2>
 
             <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.75, delay: 0.66 }}
+              className="mt-4"
+            >
+              <p className="font-heading font-semibold text-primary text-xl md:text-2xl">
+                {typedRole}
+                <motion.span
+                  aria-hidden
+                  animate={{ opacity: [1, 0, 1] }}
+                  transition={{ duration: 0.9, repeat: Infinity }}
+                  className="ml-1 inline-block"
+                >
+                  |
+                </motion.span>
+              </p>
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.72 }}
-              className="mt-8 max-w-md"
+              className="mt-8 max-w-xl"
             >
-              <div className="w-12 h-[0.5px] bg-primary/40 mb-5" />
-              <p className="text-lg text-muted-foreground font-medium leading-relaxed">
-                Senior engineer based in {location}, focused on AI, intelligent automation,
-                and No-Code/Low-Code delivery. I care about clear specs, fast iteration, and systems that keep working after launch.
-              </p>
+              <motion.div
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="rounded-2xl border border-primary/20 bg-card/70 backdrop-blur-md p-6 md:p-7 shadow-xl shadow-primary/10"
+              >
+                <div className="w-12 h-[0.5px] bg-primary/40 mb-5" />
+                <p className="text-lg text-muted-foreground font-medium leading-relaxed">
+                  Dynamic and experienced{" "}
+                  <span className="text-primary font-semibold">AI Engineer</span> and{" "}
+                  <span className="text-primary font-semibold">Full Stack Developer</span> with
+                  a strong track record of shipping production-ready platforms across healthcare,
+                  fintech, and SaaS. I specialize in{" "}
+                  <span className="text-primary font-semibold">AI-driven automation</span>,{" "}
+                  <span className="text-primary font-semibold">No-Code/Low-Code systems</span>,
+                  and scalable web applications that prioritize reliability, speed, and measurable
+                  business impact.
+                </p>
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -103,6 +168,11 @@ export default function HeroSection() {
                 animate={{ scale: [1, 1.06, 1], opacity: [0.45, 0.15, 0.45] }}
                 transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut" }}
               />
+              <motion.div
+                className="absolute inset-[-20px] rounded-full bg-primary/10 blur-2xl -z-10"
+                animate={{ scale: [1, 1.08, 1], opacity: [0.25, 0.4, 0.25] }}
+                transition={{ repeat: Infinity, duration: 4.4, ease: "easeInOut" }}
+              />
 
               <div className="relative w-full h-full rounded-full overflow-hidden shadow-2xl shadow-primary/10 border border-border/50">
                 <img
@@ -127,7 +197,7 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.6 }}
-          className="hidden md:flex absolute bottom-8 left-[7.5vw] items-center gap-3 text-muted-foreground"
+          className="hidden md:flex absolute bottom--2 left-[7.5vw] items-center gap-3 text-muted-foreground"
         >
           <motion.div
             animate={{ y: [0, 6, 0] }}

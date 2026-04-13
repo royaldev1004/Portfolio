@@ -31,7 +31,9 @@ export default function CertificationsSection() {
   const certifications = isSupabaseConfigured() && !isError && dbCerts?.length ? dbCerts : FALLBACK;
 
   return (
-    <section id="certifications" className="py-24 md:py-32 px-[7.5vw]">
+    <section id="certifications" className="py-24 md:py-32 px-[7.5vw] relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.12),transparent_55%)]" />
+
       <div className="relative">
         <span className="absolute -top-8 left-0 font-heading font-black text-[12vw] md:text-[8vw] leading-none text-foreground/[0.045] tracking-tighter pointer-events-none select-none">
           CERTS

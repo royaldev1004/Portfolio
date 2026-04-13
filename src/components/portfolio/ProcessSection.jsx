@@ -74,7 +74,9 @@ export default function ProcessSection() {
   const pillars = isSupabaseConfigured() && !isError && dbSteps?.length ? dbSteps : FALLBACK;
 
   return (
-    <section id="process" className="py-24 md:py-32 px-[7.5vw] bg-card" aria-labelledby="process-heading">
+    <section id="process" className="py-24 md:py-32 px-[7.5vw] bg-card relative overflow-hidden" aria-labelledby="process-heading">
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(14,165,233,0.12),transparent_55%)]" />
+
       <div className="w-full h-[0.5px] bg-border -mt-24 md:-mt-32 mb-24 md:mb-32" />
       <div className="relative">
         <span

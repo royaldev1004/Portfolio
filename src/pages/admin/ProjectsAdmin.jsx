@@ -1,12 +1,102 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { mapProjectRow, projectToSupabasePayload } from "@/lib/experience-mappers";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { AdminPage, FormField, ToggleField, ItemList, Modal } from "./shared/AdminComponents";
+import { AdminPage, FormField, ToggleField, HighlightsInput, ItemList, Modal } from "./shared/AdminComponents";
 
-const EMPTY = { title: "", category: "", role: "", description: "", image: "", url: "", tall: false, order: 0 };
+const STORAGE_BUCKET = "portfolio-media";
+
+const EMPTY = { title: "", category: "", role: "", description: "", image: "", url: "", tier: "notable", tags: [], tall: false, order: 0 };
+
+function ProjectImageField({ value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file (JPEG, PNG, WebP, or GIF).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const safeBase = file.name.replace(/[^\w.\-]+/g, "_").slice(0, 80) || "image";
+      const path = `projects/${Date.now()}-${safeBase}`;
+      const { error: upErr } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, file, { contentType: file.type, upsert: true });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+      const publicUrl = pub?.publicUrl;
+      if (!publicUrl) throw new Error("Could not get public URL");
+      onChange(publicUrl);
+      toast.success("Image uploaded — click Save to store it on this project.");
+    } catch (err) {
+      const msg = err?.message || "Upload failed";
+      if (msg.includes("Bucket not found") || msg.includes("not found")) {
+        toast.error("Storage bucket missing. Run the Storage section in supabase/schema.sql (bucket portfolio-media).");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border/80 bg-muted/20 p-4 space-y-3">
+      <div>
+        <p className="font-heading font-semibold text-sm text-foreground">Project image</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Upload a file or paste an image URL (e.g. OG image from a site).</p>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-4 sm:items-start">
+        <div className="shrink-0 w-full max-w-[220px] aspect-video overflow-hidden border border-border/60 bg-background rounded-lg">
+          {value ? (
+            <img
+              src={value}
+              alt=""
+              className="w-full h-full object-cover"
+              onError={(ev) => {
+                ev.target.style.opacity = "0.3";
+              }}
+            />
+          ) : (
+            <div className="w-full h-full min-h-[96px] flex items-center justify-center text-xs text-muted-foreground p-2 text-center">
+              No preview
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 space-y-2">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleFile}
+          />
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60 transition-colors"
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {uploading ? "Uploading…" : "Upload image"}
+          </button>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Files are stored in Supabase Storage (<code className="bg-muted px-1 rounded">{STORAGE_BUCKET}</code>
+            /projects). Max ~5 MB recommended.
+          </p>
+          <FormField label="Image URL" value={value} onChange={onChange} placeholder="https://…" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ProjectModal({ item, onClose, onSave, saving }) {
   const [form, setForm] = useState(item || EMPTY);
@@ -16,8 +106,10 @@ function ProjectModal({ item, onClose, onSave, saving }) {
       <FormField label="Title" value={form.title} onChange={set("title")} placeholder="Project title" />
       <FormField label="Category" value={form.category} onChange={set("category")} placeholder="e.g. Brand & product" />
       <FormField label="Role" value={form.role} onChange={set("role")} placeholder="e.g. I led design" />
+      <FormField label="Project Group" value={form.tier} onChange={set("tier")} options={["notable", "noteworthy"]} />
       <FormField label="Description" value={form.description} onChange={set("description")} multiline placeholder="Short description of this project" />
-      <FormField label="Image URL" value={form.image} onChange={set("image")} placeholder="https://…" />
+      <HighlightsInput label="Tech tags" value={form.tags || []} onChange={set("tags")} />
+      <ProjectImageField value={form.image} onChange={set("image")} />
       <FormField label="Company / project URL" value={form.url} onChange={set("url")} placeholder="https://…" />
       <ToggleField label="Tall card (taller image)" value={form.tall} onChange={set("tall")} />
       <FormField label="Display Order" value={form.order} onChange={(v) => set("order")(Number(v))} type="number" />
@@ -86,7 +178,7 @@ export default function ProjectsAdmin() {
       <ItemList
         items={data} isLoading={isLoading} error={error?.message} onRetry={refetch}
         onEdit={setModal} onDelete={del}
-        primaryKey="title" secondaryKey="category" tertiaryKey="role"
+        primaryKey="title" secondaryKey="tier" tertiaryKey="role"
       />
       {modal !== null && (
         <ProjectModal item={modal?.id ? modal : null} onClose={() => setModal(null)} onSave={save} saving={saving} />

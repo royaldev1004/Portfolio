@@ -5,26 +5,18 @@ import { settingsToObject } from "@/lib/experience-mappers";
 import { Save, Loader2, User, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { FormField } from "./shared/AdminComponents";
+import { PROFILE_SITE_SETTINGS_DEFAULTS } from "@/lib/site-settings-defaults";
 
 const STORAGE_BUCKET = "portfolio-media";
 
 const PROFILE_KEYS = [
   "profile_name", "profile_location", "profile_email", "profile_role_title",
   "profile_avatar_url", "profile_work_image_url",
+  "hero_role_titles",
   "hero_tagline_pre", "hero_tagline_highlight", "hero_tagline_post",
 ];
 
-const DEFAULTS = {
-  profile_name: "Nguyen Hiep",
-  profile_location: "Vietnam",
-  profile_email: "fullmaster240@gmail.com",
-  profile_role_title: "Senior AI & Automation Engineer",
-  profile_avatar_url: "/nguyen-hiep.png",
-  profile_work_image_url: "/Work.png",
-  hero_tagline_pre: "I build",
-  hero_tagline_highlight: "AI & automation",
-  hero_tagline_post: "that ships",
-};
+const DEFAULTS = PROFILE_SITE_SETTINGS_DEFAULTS;
 
 /** Upload to Supabase Storage → public URL; updates parent via onUrlChange */
 function ProfileImageSlot({
@@ -150,7 +142,6 @@ export default function ProfileAdmin() {
       const { error } = await supabase.from("site_settings").upsert(upserts, { onConflict: "key" });
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["site-settings"] });
-      await qc.invalidateQueries({ queryKey: ["profile"] });
       toast.success("Profile saved");
       setEdits(null);
     } catch (e) {
@@ -197,6 +188,13 @@ export default function ProfileAdmin() {
             <FormField label="Location" value={current.profile_location} onChange={set("profile_location")} placeholder="City, Country" />
             <FormField label="Email" value={current.profile_email} onChange={set("profile_email")} placeholder="you@example.com" />
             <FormField label="Role / Title" value={current.profile_role_title} onChange={set("profile_role_title")} placeholder="e.g. Senior AI & Automation Engineer" />
+            <FormField
+              label="Hero rotating roles (one per line)"
+              value={current.hero_role_titles}
+              onChange={set("hero_role_titles")}
+              multiline
+              placeholder={"Senior AI & Automation Engineer\nNo-Code/Low-Code & CMS Developer\nAI Voice Agent Developer"}
+            />
           </div>
 
           <div className="space-y-3">

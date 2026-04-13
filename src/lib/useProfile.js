@@ -1,19 +1,32 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { settingsToObject } from '@/lib/experience-mappers';
+import { PROFILE_SITE_SETTINGS_DEFAULTS } from '@/lib/site-settings-defaults';
 
-// Hardcoded fallbacks — used when Supabase is not configured or data not yet seeded
-const DEFAULTS = {
-  profile_name:           'Nguyen Hiep',
-  profile_location:       'Vietnam',
-  profile_email:          'fullmaster240@gmail.com',
-  profile_role_title:     'Senior AI & Automation Engineer',
-  profile_avatar_url:     '/nguyen-hiep.png',
-  profile_work_image_url: '/Work.png',
-  hero_tagline_pre:       'I build',
-  hero_tagline_highlight: 'AI & automation',
-  hero_tagline_post:      'that ships',
-};
+function parseRoleTitles(raw, fallbackTitle) {
+  const source = (raw ?? '').toString().trim();
+  if (!source) return [fallbackTitle];
+
+  // Supports either JSON array or plain text (one role per line).
+  if (source.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(source);
+      const list = Array.isArray(parsed)
+        ? parsed.map((item) => (item ?? '').toString().trim()).filter(Boolean)
+        : [];
+      if (list.length) return list;
+    } catch {
+      // Fall back to line parsing.
+    }
+  }
+
+  const list = source
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return list.length ? list : [fallbackTitle];
+}
 
 export function useProfile() {
   const { data: settings } = useQuery({
@@ -27,7 +40,7 @@ export function useProfile() {
     },
   });
 
-  const s = { ...DEFAULTS, ...(settings || {}) };
+  const s = { ...PROFILE_SITE_SETTINGS_DEFAULTS, ...(settings || {}) };
 
   return {
     name:               s.profile_name,
@@ -39,5 +52,6 @@ export function useProfile() {
     taglinePre:         s.hero_tagline_pre,
     taglineHighlight:   s.hero_tagline_highlight,
     taglinePost:        s.hero_tagline_post,
+    heroRoles:          parseRoleTitles(s.hero_role_titles, s.profile_role_title),
   };
 }
