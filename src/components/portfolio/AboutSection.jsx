@@ -25,10 +25,11 @@ function IntroParagraph({ template, name }) {
 
 export default function AboutSection() {
   const { name, location, workImageUrl } = useProfile();
+  const useDb = isSupabaseConfigured();
 
-  const { data: dbStats, isError: statsErr } = useQuery({
+  const { data: dbStats, isError: statsErr, isLoading: statsLoading } = useQuery({
     queryKey: ["portfolio", "about", "stats"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("about_stats").select("*").order("sort_order");
       if (error) throw error;
@@ -36,9 +37,9 @@ export default function AboutSection() {
     },
   });
 
-  const { data: dbSettings, isError: settingsErr } = useQuery({
+  const { data: dbSettings, isError: settingsErr, isLoading: settingsLoading } = useQuery({
     queryKey: ["site-settings"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("site_settings").select("*");
       if (error) throw error;
@@ -46,9 +47,9 @@ export default function AboutSection() {
     },
   });
 
-  const { data: dbProjects, isError: projectsErr } = useQuery({
+  const { data: dbProjects, isError: projectsErr, isLoading: projectsLoading } = useQuery({
     queryKey: ["portfolio", "projects"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
@@ -56,24 +57,29 @@ export default function AboutSection() {
     },
   });
 
-  const useDb = isSupabaseConfigured();
-  const stats = useDb && !statsErr && dbStats?.length ? dbStats : ABOUT_STATS_FALLBACK;
+  const waitingForDb = useDb && (statsLoading || settingsLoading || projectsLoading);
+  const stats = useDb
+    ? (statsLoading ? [] : (!statsErr && dbStats?.length ? dbStats : ABOUT_STATS_FALLBACK))
+    : ABOUT_STATS_FALLBACK;
   const settings = useMemo(() => {
+    if (useDb && settingsLoading) return { ...ABOUT_SITE_SETTINGS_FALLBACK };
     if (!useDb || settingsErr || !dbSettings) return { ...ABOUT_SITE_SETTINGS_FALLBACK };
     return { ...ABOUT_SITE_SETTINGS_FALLBACK, ...dbSettings };
-  }, [useDb, settingsErr, dbSettings]);
+  }, [useDb, settingsLoading, settingsErr, dbSettings]);
 
-  const bio1 = settings.about_bio_1;
-  const bio2 = settings.about_bio_2;
-  const bio3 = settings.about_bio_3;
-  const available = settings.about_available !== "false";
-  const availableText = settings.about_available_text;
-  const availableSub = settings.about_available_sub;
+  const bio1 = settings?.about_bio_1 || ABOUT_SITE_SETTINGS_FALLBACK.about_bio_1;
+  const bio2 = settings?.about_bio_2 || ABOUT_SITE_SETTINGS_FALLBACK.about_bio_2;
+  const bio3 = settings?.about_bio_3 || ABOUT_SITE_SETTINGS_FALLBACK.about_bio_3;
+  const available = (settings?.about_available || ABOUT_SITE_SETTINGS_FALLBACK.about_available) !== "false";
+  const availableText = settings?.about_available_text || ABOUT_SITE_SETTINGS_FALLBACK.about_available_text;
+  const availableSub = settings?.about_available_sub || ABOUT_SITE_SETTINGS_FALLBACK.about_available_sub;
 
-  const projects = useDb && !projectsErr && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS;
+  const projects = useDb
+    ? (projectsLoading ? [] : (!projectsErr && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS))
+    : FALLBACK_PROJECTS;
   const recentWorkProjects = useMemo(
-    () => resolveRecentWorkProjects(projects, settings.about_recent_work_project_ids),
-    [projects, settings.about_recent_work_project_ids],
+    () => resolveRecentWorkProjects(projects, settings?.about_recent_work_project_ids),
+    [projects, settings?.about_recent_work_project_ids],
   );
 
   return (
@@ -167,7 +173,10 @@ export default function AboutSection() {
                   <div className="h-px flex-1 bg-border/80" />
                 </div>
 
-                <ul className="space-y-4 pt-1">
+                {waitingForDb ? (
+                  <p className="text-muted-foreground text-sm pt-1">Loading recent work...</p>
+                ) : (
+                  <ul className="space-y-4 pt-1">
                   {recentWorkProjects.map((project) => (
                     <li
                       key={project.id}
@@ -203,7 +212,8 @@ export default function AboutSection() {
                       )}
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                )}
 
                 <p className="text-sm text-muted-foreground pt-1">
                   <button

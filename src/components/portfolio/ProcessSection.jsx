@@ -61,9 +61,10 @@ const FALLBACK = [
 ];
 
 export default function ProcessSection() {
-  const { data: dbSteps, isError } = useQuery({
+  const useDb = isSupabaseConfigured();
+  const { data: dbSteps, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "process"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("process_steps").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
@@ -71,7 +72,9 @@ export default function ProcessSection() {
     },
   });
 
-  const pillars = isSupabaseConfigured() && !isError && dbSteps?.length ? dbSteps : FALLBACK;
+  const pillars = useDb
+    ? (isLoading ? [] : (!isError && dbSteps?.length ? dbSteps : FALLBACK))
+    : FALLBACK;
 
   return (
     <section id="process" className="py-24 md:py-32 px-[7.5vw] bg-card relative overflow-hidden" aria-labelledby="process-heading">
@@ -105,46 +108,50 @@ export default function ProcessSection() {
           <div className="w-12 h-[0.5px] bg-primary/40 mt-6" />
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {pillars.map((pillar, index) => {
-            const Icon = ICON_MAP[pillar.iconName] || Compass;
-            return (
-              <motion.div
-                key={pillar.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.6, delay: index * 0.12 }}
-                className="group relative p-8 md:p-10 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-500 hover:shadow-lg hover:shadow-primary/5 flex flex-col h-full"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-primary" aria-hidden />
+        {useDb && isLoading ? (
+          <div className="text-muted-foreground text-sm py-4">Loading process steps...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {pillars.map((pillar, index) => {
+              const Icon = ICON_MAP[pillar.iconName] || Compass;
+              return (
+                <motion.div
+                  key={pillar.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6, delay: index * 0.12 }}
+                  className="group relative p-8 md:p-10 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-500 hover:shadow-lg hover:shadow-primary/5 flex flex-col h-full"
+                >
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-primary" aria-hidden />
+                    </div>
+                    <span className="font-mono-caption text-muted-foreground/60 text-lg tabular-nums">{pillar.number}</span>
                   </div>
-                  <span className="font-mono-caption text-muted-foreground/60 text-lg tabular-nums">{pillar.number}</span>
-                </div>
-                <p className="font-mono-caption text-primary mb-2">{pillar.subtitle}</p>
-                <h3 className="font-heading font-bold text-xl text-foreground mb-4">{pillar.title}</h3>
-                <p className="text-muted-foreground font-medium leading-relaxed mb-6 text-sm md:text-base flex-1">
-                  {pillar.description}
-                </p>
-                <div>
-                  <p className="font-mono-caption uppercase text-muted-foreground/80 mb-3 tracking-wider text-[11px]">
-                    Outcomes
+                  <p className="font-mono-caption text-primary mb-2">{pillar.subtitle}</p>
+                  <h3 className="font-heading font-bold text-xl text-foreground mb-4">{pillar.title}</h3>
+                  <p className="text-muted-foreground font-medium leading-relaxed mb-6 text-sm md:text-base flex-1">
+                    {pillar.description}
                   </p>
-                  <ul className="space-y-2.5">
-                    {pillar.details.map((detail) => (
-                      <li key={detail} className="flex items-start gap-2.5">
-                        <span className="mt-2 w-1 h-1 rounded-full bg-primary shrink-0" aria-hidden />
-                        <span className="text-sm text-foreground/90 leading-snug">{detail}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div>
+                    <p className="font-mono-caption uppercase text-muted-foreground/80 mb-3 tracking-wider text-[11px]">
+                      Outcomes
+                    </p>
+                    <ul className="space-y-2.5">
+                      {pillar.details.map((detail) => (
+                        <li key={detail} className="flex items-start gap-2.5">
+                          <span className="mt-2 w-1 h-1 rounded-full bg-primary shrink-0" aria-hidden />
+                          <span className="text-sm text-foreground/90 leading-snug">{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}

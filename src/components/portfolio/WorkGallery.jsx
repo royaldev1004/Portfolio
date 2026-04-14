@@ -9,9 +9,10 @@ import { FALLBACK_PROJECTS } from "@/data/portfolio-projects-fallback";
 export { FALLBACK_PROJECTS };
 
 export default function WorkGallery() {
-  const { data: dbProjects, isError } = useQuery({
+  const useDb = isSupabaseConfigured();
+  const { data: dbProjects, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "projects"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
@@ -19,8 +20,8 @@ export default function WorkGallery() {
     },
   });
 
-  const projects = isSupabaseConfigured() && !isError && dbProjects?.length
-    ? dbProjects
+  const projects = useDb
+    ? (isLoading ? [] : (!isError && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS))
     : FALLBACK_PROJECTS;
   const notableProjects = projects.filter((p) => p.tier === "notable");
   const noteworthyProjects = projects.filter((p) => p.tier !== "notable");
@@ -51,11 +52,15 @@ export default function WorkGallery() {
       <div className="space-y-16">
         <div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {notableProjects.map((project, index) => (
-              <div key={project.id} className="lg:col-span-12">
-                <ProjectCard project={project} index={index} variant="notable" featured />
-              </div>
-            ))}
+            {useDb && isLoading ? (
+              <p className="text-muted-foreground text-sm py-4">Loading projects...</p>
+            ) : (
+              notableProjects.map((project, index) => (
+                <div key={project.id} className="lg:col-span-12">
+                  <ProjectCard project={project} index={index} variant="notable" featured />
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -67,9 +72,11 @@ export default function WorkGallery() {
             Additional work that demonstrates breadth across domains and delivery styles.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {noteworthyProjects.map((project, index) => (
-              <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
-            ))}
+            {!useDb || !isLoading ? (
+              noteworthyProjects.map((project, index) => (
+                <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
+              ))
+            ) : null}
           </div>
         </div>
       </div>

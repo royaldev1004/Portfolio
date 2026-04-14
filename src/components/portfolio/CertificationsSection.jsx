@@ -18,9 +18,10 @@ const FALLBACK = [
 ];
 
 export default function CertificationsSection() {
-  const { data: dbCerts, isError } = useQuery({
+  const useDb = isSupabaseConfigured();
+  const { data: dbCerts, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "certifications"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("certifications").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
@@ -28,7 +29,9 @@ export default function CertificationsSection() {
     },
   });
 
-  const certifications = isSupabaseConfigured() && !isError && dbCerts?.length ? dbCerts : FALLBACK;
+  const certifications = useDb
+    ? (isLoading ? [] : (!isError && dbCerts?.length ? dbCerts : FALLBACK))
+    : FALLBACK;
 
   return (
     <section id="certifications" className="py-24 md:py-32 px-[7.5vw] relative overflow-hidden">
@@ -53,42 +56,46 @@ export default function CertificationsSection() {
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {certifications.map((cert, index) => {
-            const theme = COLOR_THEME[cert.colorKey] || COLOR_THEME.blue;
-            return (
-              <motion.div
-                key={cert.id}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: index * 0.07 }}
-                className={`group relative p-6 rounded-xl border bg-card hover:shadow-lg hover:shadow-primary/5 transition-all duration-400 ${theme.border} hover:border-primary/40`}
-              >
-                <div className="flex items-start justify-between mb-5">
-                  <div className={`w-10 h-10 rounded-xl ${theme.bg} flex items-center justify-center`}>
-                    <Award className={`w-4.5 h-4.5 ${theme.color}`} />
+        {useDb && isLoading ? (
+          <div className="text-muted-foreground text-sm py-4">Loading certifications...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {certifications.map((cert, index) => {
+              const theme = COLOR_THEME[cert.colorKey] || COLOR_THEME.blue;
+              return (
+                <motion.div
+                  key={cert.id}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: index * 0.07 }}
+                  className={`group relative p-6 rounded-xl border bg-card hover:shadow-lg hover:shadow-primary/5 transition-all duration-400 ${theme.border} hover:border-primary/40`}
+                >
+                  <div className="flex items-start justify-between mb-5">
+                    <div className={`w-10 h-10 rounded-xl ${theme.bg} flex items-center justify-center`}>
+                      <Award className={`w-4.5 h-4.5 ${theme.color}`} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground/40" />
+                      <span className="font-mono-caption text-muted-foreground/40 text-xs">{cert.year}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground/40" />
-                    <span className="font-mono-caption text-muted-foreground/40 text-xs">{cert.year}</span>
+                  <h3 className="font-heading font-semibold text-sm text-foreground leading-snug mb-2">{cert.title}</h3>
+                  <p className={`font-mono-caption uppercase text-xs mb-1 ${theme.color}`}>{cert.category}</p>
+                  <p className="font-mono-caption text-muted-foreground text-xs">{cert.issuer}</p>
+                  <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between">
+                    <span className="font-mono-caption text-muted-foreground/50 text-xs tracking-wider">{cert.certId}</span>
+                    <button className="w-7 h-7 rounded-full border border-border/50 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-all duration-300"
+                      aria-label={`View ${cert.title} certificate`}>
+                      <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                    </button>
                   </div>
-                </div>
-                <h3 className="font-heading font-semibold text-sm text-foreground leading-snug mb-2">{cert.title}</h3>
-                <p className={`font-mono-caption uppercase text-xs mb-1 ${theme.color}`}>{cert.category}</p>
-                <p className="font-mono-caption text-muted-foreground text-xs">{cert.issuer}</p>
-                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between">
-                  <span className="font-mono-caption text-muted-foreground/50 text-xs tracking-wider">{cert.certId}</span>
-                  <button className="w-7 h-7 rounded-full border border-border/50 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-all duration-300"
-                    aria-label={`View ${cert.title} certificate`}>
-                    <ExternalLink className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </button>
-                </div>
-                <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
-              </motion.div>
-            );
-          })}
-        </div>
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

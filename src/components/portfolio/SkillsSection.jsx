@@ -29,10 +29,11 @@ const FALLBACK_GROUPS = [
 
 export default function SkillsSection() {
   const [activeGroup, setActiveGroup] = useState(null);
+  const useDb = isSupabaseConfigured();
 
-  const { data: dbGroups, isError } = useQuery({
+  const { data: dbGroups, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "skills"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data: groupRows, error: gErr } = await supabase.from("skill_groups").select("*").order("sort_order");
       if (gErr) throw gErr;
@@ -45,7 +46,9 @@ export default function SkillsSection() {
     },
   });
 
-  const groups = isSupabaseConfigured() && !isError && dbGroups?.length ? dbGroups : FALLBACK_GROUPS;
+  const groups = useDb
+    ? (isLoading ? [] : (!isError && dbGroups?.length ? dbGroups : FALLBACK_GROUPS))
+    : FALLBACK_GROUPS;
 
   return (
     <section id="skills" className="py-24 md:py-32 px-[7.5vw] bg-card relative overflow-hidden">
@@ -71,44 +74,48 @@ export default function SkillsSection() {
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {groups.map((group, index) => {
-            const Icon = ICON_MAP[group.iconName] || Globe;
-            const theme = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
-            const isActive = activeGroup === group.id;
-            return (
-              <motion.div
-                key={group.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: index * 0.07 }}
-                onMouseEnter={() => setActiveGroup(group.id)}
-                onMouseLeave={() => setActiveGroup(null)}
-                className="relative p-6 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-400 hover:shadow-lg hover:shadow-primary/5 cursor-default overflow-hidden"
-              >
-                <div className="flex items-start justify-between mb-5">
-                  <div className={`w-11 h-11 rounded-xl ${theme.bg} flex items-center justify-center`}>
-                    <Icon className={`w-5 h-5 ${theme.color}`} />
-                  </div>
-                  <span className="font-mono-caption text-muted-foreground/40 text-xs">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="font-heading font-semibold text-base text-foreground mb-0.5">{group.label}</h3>
-                <p className={`font-mono-caption uppercase text-xs mb-4 ${theme.color}`}>{group.caption}</p>
-                <div className="flex flex-wrap gap-2">
-                  {group.skills.map((skill) => (
-                    <span key={skill} className="px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-mono-caption text-xs border border-border/50">
-                      {skill}
+        {useDb && isLoading ? (
+          <div className="text-muted-foreground text-sm py-4">Loading skills...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {groups.map((group, index) => {
+              const Icon = ICON_MAP[group.iconName] || Globe;
+              const theme = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
+              const isActive = activeGroup === group.id;
+              return (
+                <motion.div
+                  key={group.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, delay: index * 0.07 }}
+                  onMouseEnter={() => setActiveGroup(group.id)}
+                  onMouseLeave={() => setActiveGroup(null)}
+                  className="relative p-6 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-400 hover:shadow-lg hover:shadow-primary/5 cursor-default overflow-hidden"
+                >
+                  <div className="flex items-start justify-between mb-5">
+                    <div className={`w-11 h-11 rounded-xl ${theme.bg} flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 ${theme.color}`} />
+                    </div>
+                    <span className="font-mono-caption text-muted-foreground/40 text-xs">
+                      {String(index + 1).padStart(2, "0")}
                     </span>
-                  ))}
-                </div>
-                <div className="absolute inset-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
-              </motion.div>
-            );
-          })}
-        </div>
+                  </div>
+                  <h3 className="font-heading font-semibold text-base text-foreground mb-0.5">{group.label}</h3>
+                  <p className={`font-mono-caption uppercase text-xs mb-4 ${theme.color}`}>{group.caption}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.skills.map((skill) => (
+                      <span key={skill} className="px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-mono-caption text-xs border border-border/50">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="absolute inset-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

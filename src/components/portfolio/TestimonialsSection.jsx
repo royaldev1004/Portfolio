@@ -26,10 +26,11 @@ function StarRating({ count }) {
 
 export default function TestimonialsSection() {
   const [page, setPage] = useState(0);
+  const useDb = isSupabaseConfigured();
 
-  const { data: dbData, isError } = useQuery({
+  const { data: dbData, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "testimonials"],
-    enabled: isSupabaseConfigured(),
+    enabled: useDb,
     queryFn: async () => {
       const { data, error } = await supabase.from("testimonials").select("*").order("sort_order", { ascending: true });
       if (error) throw error;
@@ -37,7 +38,9 @@ export default function TestimonialsSection() {
     },
   });
 
-  const testimonials = isSupabaseConfigured() && !isError && dbData?.length ? dbData : FALLBACK;
+  const testimonials = useDb
+    ? (isLoading ? [] : (!isError && dbData?.length ? dbData : FALLBACK))
+    : FALLBACK;
   const perPage = 3;
   const totalPages = Math.ceil(testimonials.length / perPage);
   const visible = testimonials.slice(page * perPage, page * perPage + perPage);
@@ -80,33 +83,37 @@ export default function TestimonialsSection() {
           </div>
         </motion.div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={page}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -16 }}
-            transition={{ duration: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          >
-            {visible.map((t) => (
-              <div key={t.id} className="relative p-7 rounded-xl border border-border/50 bg-card flex flex-col gap-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-400">
-                <Quote className="w-6 h-6 text-primary/30 shrink-0" />
-                <p className="text-muted-foreground leading-relaxed text-sm flex-1">"{t.text}"</p>
-                <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span className="font-heading font-semibold text-xs text-primary">{t.avatar}</span>
+        {useDb && isLoading ? (
+          <div className="text-muted-foreground text-sm py-4">Loading testimonials...</div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={page}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            >
+              {visible.map((t) => (
+                <div key={t.id} className="relative p-7 rounded-xl border border-border/50 bg-card flex flex-col gap-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-400">
+                  <Quote className="w-6 h-6 text-primary/30 shrink-0" />
+                  <p className="text-muted-foreground leading-relaxed text-sm flex-1">"{t.text}"</p>
+                  <div className="flex items-center gap-3 pt-2 border-t border-border/50">
+                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <span className="font-heading font-semibold text-xs text-primary">{t.avatar}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-heading font-semibold text-sm text-foreground truncate">{t.name}</p>
+                      <p className="font-mono-caption text-muted-foreground truncate">{t.role}</p>
+                    </div>
+                    <StarRating count={t.rating} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-heading font-semibold text-sm text-foreground truncate">{t.name}</p>
-                    <p className="font-mono-caption text-muted-foreground truncate">{t.role}</p>
-                  </div>
-                  <StarRating count={t.rating} />
                 </div>
-              </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
       </div>
     </section>
   );
