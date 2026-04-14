@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Briefcase } from "lucide-react";
@@ -20,6 +20,64 @@ function IntroParagraph({ template, name }) {
         </React.Fragment>
       ))}
     </p>
+  );
+}
+
+function AnimatedStatValue({ value }) {
+  const ref = useRef(null);
+  const [display, setDisplay] = useState("0");
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+
+    const text = String(value ?? "").trim();
+    const match = text.match(/^(\d+)(.*)$/);
+    if (!match) {
+      setDisplay(text || "0");
+      return;
+    }
+
+    const target = Number(match[1]);
+    const suffix = match[2] || "";
+    const durationMs = 1200;
+    let rafId = 0;
+    const start = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(target * eased);
+      setDisplay(`${current}${suffix}`);
+      if (progress < 1) rafId = requestAnimationFrame(step);
+    };
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [started, value]);
+
+  return (
+    <span ref={ref}>
+      {display}
+    </span>
   );
 }
 
@@ -136,9 +194,11 @@ export default function AboutSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.45, delay: 0.1 + index * 0.06 }}
-                  className="text-center md:text-left"
+                  className="text-center md:text-left rounded-xl border border-primary/20 bg-primary/[0.03] px-3 py-2.5"
                 >
-                  <p className="font-heading font-semibold text-xl md:text-2xl text-foreground">{stat.value}</p>
+                  <p className="font-heading font-bold text-2xl md:text-3xl text-primary tracking-tight">
+                    <AnimatedStatValue value={stat.value} />
+                  </p>
                   <p className="font-mono-caption uppercase text-muted-foreground mt-1 text-[10px] md:text-xs leading-snug">
                     {stat.label}
                   </p>
