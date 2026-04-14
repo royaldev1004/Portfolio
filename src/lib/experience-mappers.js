@@ -61,6 +61,13 @@ export function mapProjectRow(row) {
     try { tags = JSON.parse(tags); } catch { tags = []; }
   }
   if (!Array.isArray(tags)) tags = [];
+
+  let screenshots = row.screenshot_urls;
+  if (typeof screenshots === "string") {
+    try { screenshots = JSON.parse(screenshots); } catch { screenshots = []; }
+  }
+  if (!Array.isArray(screenshots)) screenshots = [];
+
   return {
     id: row.id,
     title: row.title,
@@ -71,6 +78,9 @@ export function mapProjectRow(row) {
     url: row.external_url ?? "",
     tier: row.project_tier ?? "noteworthy",
     tags,
+    screenshots,
+    feedbackText: row.feedback_text ?? "",
+    feedbackAuthor: row.feedback_author ?? "",
     tall: Boolean(row.tall),
     order: row.sort_order ?? 0,
   };
@@ -86,6 +96,9 @@ export function projectToSupabasePayload(form) {
     external_url: form.url ?? "",
     project_tier: form.tier ?? "noteworthy",
     tech_tags: Array.isArray(form.tags) ? form.tags : [],
+    screenshot_urls: Array.isArray(form.screenshots) ? form.screenshots : [],
+    feedback_text: form.feedbackText ?? "",
+    feedback_author: form.feedbackAuthor ?? "",
     tall: Boolean(form.tall),
     sort_order: Number(form.order) || 0,
   };

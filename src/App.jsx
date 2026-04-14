@@ -9,7 +9,7 @@ import { ThemeProvider } from '@/lib/useTheme';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
-// Add page imports here
+import ProjectDetail from './pages/ProjectDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,6 +38,7 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/project/:id" element={<ProjectDetail />} />
       <Route path="/admin/*" element={<Admin />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
