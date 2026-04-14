@@ -6,6 +6,7 @@ import { ArrowUpRight, ExternalLink } from "lucide-react";
 export default function ProjectCard({ project, index, variant = "noteworthy", featured = false }) {
   const navigate = useNavigate();
   const isNotable = variant === "notable";
+  const isEvenNumberedCard = (index + 1) % 2 === 0;
   const imageHeightClass = isNotable
     ? featured ? "h-[320px] md:h-[420px]" : "h-[260px] md:h-[320px]"
     : "h-[220px] md:h-[250px]";
@@ -44,7 +45,15 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
           </div>
 
           <motion.div
-            className={`absolute z-10 ${featured ? "left-4 right-4 -bottom-2 md:left-auto md:right-10 md:w-[44%]" : "left-4 right-4 -bottom-2 md:left-auto md:right-8 md:w-[58%]"}`}
+            className={`absolute z-10 ${
+              featured
+                ? isEvenNumberedCard
+                  ? "left-4 right-4 -bottom-2 md:left-10 md:right-auto md:w-[44%]"
+                  : "left-4 right-4 -bottom-2 md:left-auto md:right-10 md:w-[44%]"
+                : isEvenNumberedCard
+                  ? "left-4 right-4 -bottom-2 md:left-8 md:right-auto md:w-[58%]"
+                  : "left-4 right-4 -bottom-2 md:left-auto md:right-8 md:w-[58%]"
+            }`}
             initial={{ opacity: 0, y: 22 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
