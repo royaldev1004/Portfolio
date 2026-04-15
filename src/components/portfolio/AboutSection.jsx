@@ -156,8 +156,7 @@ export default function AboutSection() {
           transition={{ duration: 0.6 }}
           className="mb-12 md:mb-14 flex flex-wrap items-center gap-4"
         >
-          <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="text-primary">{settings.about_section_number}</span>
+          <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight">
             <span className="bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
               {settings.about_section_title}
             </span>

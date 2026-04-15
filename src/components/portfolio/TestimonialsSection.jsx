@@ -64,7 +64,9 @@ export default function TestimonialsSection() {
           <div>
             <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">Kind words</p>
             <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
-              What people <span className="font-semibold">say about working with me</span>
+              <span className="font-semibold bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+              What people{" "} say about working with me
+              </span>
             </h2>
             <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />
           </div>

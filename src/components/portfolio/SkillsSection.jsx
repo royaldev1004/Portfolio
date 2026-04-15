@@ -69,7 +69,9 @@ export default function SkillsSection() {
         >
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">What I use</p>
           <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
-            My stack &amp; <span className="font-semibold">tooling</span>
+            <span className="font-semibold bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+            My stack &amp;{" "} tooling
+            </span>
           </h2>
           <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />
         </motion.div>

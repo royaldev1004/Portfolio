@@ -42,7 +42,11 @@ export default function WorkGallery() {
         >
           <div className="flex items-center gap-4 mb-3">
             <p className="font-heading font-bold text-2xl md:text-4xl tracking-tight text-foreground">
-              My <span className="text-primary">Notable</span> Projects
+              My{" "}
+              <span className="bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+                Notable
+              </span>{" "}
+              Projects
             </p>
             <div className="hidden md:block h-[0.5px] flex-1 bg-primary/30" />
           </div>
@@ -66,7 +70,11 @@ export default function WorkGallery() {
 
         <div>
           <h3 className="font-heading font-semibold text-2xl md:text-3xl text-foreground mb-2 text-center">
-            Other <span className="text-primary">Noteworthy</span> Projects
+            Other{" "}
+            <span className="bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+              Noteworthy
+            </span>{" "}
+            Projects
           </h3>
           <p className="text-muted-foreground mb-6 text-center">
             Additional work that demonstrates breadth across domains and delivery styles.

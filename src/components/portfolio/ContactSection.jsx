@@ -35,7 +35,9 @@ export default function ContactSection() {
           className="text-center mb-10 md:mb-12"
         >
           <h2 className="font-heading font-bold text-4xl md:text-5xl text-foreground">
-            Get <span className="text-primary">In Touch</span>
+            <span className="bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+              Get In Touch
+            </span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             I&apos;m always open to new ideas and collaborations. If you&apos;re planning a product,

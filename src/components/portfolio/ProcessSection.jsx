@@ -98,7 +98,9 @@ export default function ProcessSection() {
         >
           <p className="font-mono-caption uppercase text-primary mb-3 tracking-widest">Engagement model</p>
           <h2 id="process-heading" className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
-            Delivery you can <span className="font-semibold text-primary">plan around</span>
+            <span className="font-semibold bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+            Delivery you can{" "} plan around
+            </span>
           </h2>
           <p className="mt-5 text-muted-foreground font-medium leading-relaxed text-base md:text-lg">
             Engagements are organized in three phases—scope, build, and post-launch—with tangible outputs at each step.

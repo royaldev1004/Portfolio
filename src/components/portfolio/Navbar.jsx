@@ -47,9 +47,12 @@ export default function Navbar() {
         <div className="mx-auto px-[7.5vw] h-16 flex items-center justify-between">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="font-heading font-semibold text-lg tracking-tight text-foreground"
+            className="group text-foreground"
+            aria-label="Go to top"
           >
-            {name}
+            <span className="inline-block font-heading font-semibold text-2xl tracking-tight bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent transition-all duration-300 ease-out group-hover:scale-[1.04] group-hover:-translate-y-0.5 group-hover:drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]">
+              Royal Dev
+            </span>
           </button>
 
           <div className="hidden md:flex items-center gap-8">

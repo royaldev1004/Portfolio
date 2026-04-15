@@ -96,7 +96,9 @@ export default function ExperienceSection() {
               Background
             </p>
             <h2 className="font-heading font-bold text-3xl md:text-5xl tracking-tight text-foreground">
-              Experience &amp; <span className="font-semibold">Education</span>
+              <span className="font-semibold bg-gradient-to-r from-primary via-cyan-400 to-violet-400 bg-clip-text text-transparent">
+              Experience &amp;{" "} Education
+              </span>
             </h2>
             <div className="w-12 h-[0.5px] bg-primary/40 mt-5" />
           </div>
