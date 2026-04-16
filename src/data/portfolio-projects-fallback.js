@@ -10,6 +10,8 @@ export const FALLBACK_PROJECTS = [
     image:
       "https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png",
     tier: "notable",
+    workCategory: null,
+    subcategory: "",
     tags: ["Ambient AI", "Clinical Documentation", "EHR"],
     screenshots: [
       "https://framerusercontent.com/images/l2jbzG0Wzk7GJYt31m2QzU82JzQ.png",
@@ -31,6 +33,8 @@ export const FALLBACK_PROJECTS = [
     image:
       "https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg",
     tier: "notable",
+    workCategory: null,
+    subcategory: "",
     tags: ["RCM", "Ambient AI", "Healthcare Ops"],
     screenshots: [
       "https://cdn.prod.website-files.com/66b319e3933cb4cb9c43ebdc/66cb9c13447baaa8b66e7511_Commure%20-%20Open%20Graph%20Image.jpg",
@@ -52,6 +56,8 @@ export const FALLBACK_PROJECTS = [
     image:
       "https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w",
     tier: "notable",
+    workCategory: null,
+    subcategory: "",
     tags: ["Fintech", "Community Lending", "Payments"],
     screenshots: [
       "https://static1.squarespace.com/static/5c8ad859e8ba4434f9bf43f6/t/5db2fabdca41e03baabf6c71/1572010686772/Incutopurple600.png?format=1500w",
@@ -65,60 +71,84 @@ export const FALLBACK_PROJECTS = [
   },
   {
     id: "4",
-    title: "Unit21",
-    category: "Previous role",
-    role: "Engineering",
+    title: "Lead Generation & Appointment Booking System",
+    category: "GoHighLevel",
+    role: "CRM & Automation Engineer",
     description:
-      "Risk and fraud operations tooling — helping teams detect suspicious activity, investigate cases, and stay ahead of financial crime.",
+      "Built a full lead generation and automated appointment booking system using GoHighLevel with Calendly integration, enabling seamless scheduling and follow-up automation.",
     image:
       "https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png",
     tier: "noteworthy",
-    tags: ["Fraud", "AML", "Risk Infrastructure"],
+    workCategory: "ghl",
+    subcategory: "CRM Automation",
+    tags: ["GHL", "Calendly", "Calendly"],
     screenshots: [
       "https://cdn.prod.website-files.com/61e589aa65b0300f0d3e0b70/69adef97057fd6b3d4515fb9_social-opengraph-general.png",
     ],
     tall: false,
-    url: "https://www.unit21.ai/",
+    url: "",
     feedbackText:
-      "Shipped fraud-ops tooling that our analysts actually want to use. Fast iteration, strong documentation, and production-grade attention to detail.",
+      "Fast iteration, thoughtful architecture, and excellent communication. The tools they built quickly became core to our daily operations.",
     feedbackAuthor: "Risk Operations Manager",
   },
   {
     id: "5",
-    title: "Babyscripts",
-    category: "Previous role",
-    role: "Engineering",
+    title: "AI Voice Agents & Calendar Automation",
+    category: "Voice Agent",
+    role: "CRM & AI Engineer",
     description:
-      "Remote pregnancy care — connecting patients and providers with monitoring and education to improve maternal health outcomes.",
+      "I designed and implemented an AI-powered communication and scheduling system for a medical spa, leveraging Retell to deploy intelligent voice agents that handled inbound inquiries, answered common questions, and guided patients toward booking.",
     image: "https://babyscripts.com/hubfs/bloodpressure_heroimage.png",
     tier: "noteworthy",
-    tags: ["Digital Health", "Remote Monitoring", "Maternal Care"],
+    workCategory: "ai-voice-agent",
+    subcategory: "Medical Spa",
+    tags: ["Retell", "N8N", "GHL"],
     screenshots: [
       "https://babyscripts.com/hubfs/bloodpressure_heroimage.png",
     ],
     tall: true,
-    url: "https://www.babyscripts.com/",
+    url: "",
     feedbackText:
-      "Deep empathy for clinicians and patients alike. The work balanced compliance, UX, and reliability in a way that felt genuinely patient-first.",
-    feedbackAuthor: "Clinical Programs Director",
+      "He delivered exactly what we needed for our AI voice and calendar workflow. The system felt smooth, professional, and practical from day one.",
+    feedbackAuthor: "Medical Spa Owner",
   },
   {
     id: "6",
-    title: "Panorama Education",
-    category: "Previous role",
-    role: "Engineering",
+    title: "Plumbing, HVAC & Electrical Services – AI Voice Booking System",
+    category: "AI Voice Agent",
+    role: "AI & CRM Engineer",
     description:
-      "K–12 analytics and surveys — giving schools actionable insight into student success, well-being, and engagement.",
+      "Designed and deployed an AI voice booking system for a home services company, automating inbound call handling and appointment scheduling.",
     image: "https://www.panoramaed.com/hubfs/panorama-education-district-view.png",
     tier: "noteworthy",
-    tags: ["EdTech", "MTSS", "Student Analytics"],
+    workCategory: "ai-voice-agent",
+    subcategory: "Home Services",
+    tags: ["Retell", "N8N", "GoHighLevel"],
     screenshots: [
       "https://www.panoramaed.com/hubfs/panorama-education-district-view.png",
     ],
     tall: false,
-    url: "https://www.panoramaed.com/",
+    url: "",
     feedbackText:
       "Turned ambiguous district requirements into a clear analytics story. Stakeholder communication was excellent across engineering and education teams.",
     feedbackAuthor: "VP of Data & Insights",
+  },
+  {
+    id: "7",
+    title: "AI Agent for eCommerce Image Generation",
+    category: "n8n",
+    role: "Automation Engineer",
+    description:
+      "Built an AI agent pipeline that automatically generates high-quality product images for eCommerce stores using n8n workflow automation.",
+    image: "https://www.panoramaed.com/hubfs/panorama-education-district-view.png",
+    tier: "noteworthy",
+    workCategory: "automation",
+    subcategory: "eCommerce",
+    tags: ["N8N", "OpenAI", "eCommerce"],
+    screenshots: [],
+    tall: false,
+    url: "",
+    feedbackText: "",
+    feedbackAuthor: "",
   },
 ];

@@ -98,7 +98,11 @@ export function FormField({ label, value, onChange, multiline, type = "text", op
       <label className="block text-xs font-medium text-muted-foreground mb-1 uppercase tracking-widest">{label}</label>
       {options ? (
         <select value={value} onChange={(e) => onChange(e.target.value)} className={cls}>
-          {options.map((o) => <option key={o}>{o}</option>)}
+          {options.map((o) =>
+            typeof o === "object"
+              ? <option key={o.value} value={o.value}>{o.label}</option>
+              : <option key={o}>{o}</option>
+          )}
         </select>
       ) : multiline ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} placeholder={placeholder}

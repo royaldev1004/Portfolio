@@ -16,9 +16,9 @@ const FALLBACK = [
 
 function StarRating({ count }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1">
       {Array.from({ length: Math.max(1, Math.min(5, count)) }).map((_, i) => (
-        <Star key={i} className="w-3.5 h-3.5 fill-primary text-primary" />
+        <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.35)]" />
       ))}
     </div>
   );
@@ -98,18 +98,30 @@ export default function TestimonialsSection() {
               className="grid grid-cols-1 md:grid-cols-3 gap-6"
             >
               {visible.map((t) => (
-                <div key={t.id} className="relative p-7 rounded-xl border border-border/50 bg-card flex flex-col gap-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-400">
-                  <Quote className="w-6 h-6 text-primary/30 shrink-0" />
-                  <p className="text-muted-foreground leading-relaxed text-sm flex-1">"{t.text}"</p>
-                  <div className="flex items-center gap-3 pt-2 border-t border-border/50">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="font-heading font-semibold text-xs text-primary">{t.avatar}</span>
+                <div
+                  key={t.id}
+                  className="relative p-7 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f2342]/90 via-[#0a1628]/90 to-[#06101e]/95 flex flex-col gap-5 hover:border-cyan-300/30 hover:shadow-xl hover:shadow-cyan-900/20 transition-all duration-300 overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-28 h-28 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
+
+                  <div className="relative flex items-start justify-between gap-3">
+                    <Quote className="w-7 h-7 text-cyan-300/35 shrink-0" />
+                    <StarRating count={t.rating} />
+                  </div>
+
+                  <p className="relative text-slate-200/95 leading-relaxed text-[15px] flex-1 border-l-2 border-amber-400/35 pl-4">
+                    "{t.text}"
+                  </p>
+
+                  <div className="relative flex items-center gap-3 pt-3 border-t border-white/10">
+                    <div className="w-10 h-10 rounded-full bg-cyan-400/12 border border-cyan-300/20 flex items-center justify-center shrink-0">
+                      <span className="font-heading font-semibold text-xs text-cyan-200">{t.avatar}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-heading font-semibold text-sm text-foreground truncate">{t.name}</p>
-                      <p className="font-mono-caption text-muted-foreground truncate">{t.role}</p>
+                      <p className="font-heading font-semibold text-base text-slate-100 truncate">{t.name}</p>
+                      <p className="font-mono-caption text-slate-400 truncate">{t.role}</p>
                     </div>
-                    <StarRating count={t.rating} />
                   </div>
                 </div>
               ))}

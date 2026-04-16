@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ExternalLink, ChevronLeft, ChevronRight,
-  Briefcase, FileText, Cpu, X, ZoomIn, Unlink, Star, Quote,
+  Briefcase, FileText, Cpu, X, ZoomIn, Unlink, Star, Quote, TriangleAlert, Lightbulb,
 } from "lucide-react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { mapProjectRow } from "@/lib/experience-mappers";
@@ -350,28 +350,31 @@ export default function ProjectDetail() {
           </Link>
         </motion.div>
 
-        {/* Two-column layout */}
+        {/* ── Title hero — full width ──────────────────────────── */}
+        <motion.div
+          className="mb-10 md:mb-12"
+          initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+        >
+          {p.category && (
+            <p className="font-mono text-xs uppercase tracking-[0.25em] text-cyan-400 mb-3">{p.category}</p>
+          )}
+          <h1 className="font-heading font-black text-4xl md:text-5xl lg:text-[3.75rem] leading-tight max-w-4xl">
+            <span className="bg-gradient-to-br from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent">
+              {p.title}
+            </span>
+          </h1>
+        </motion.div>
+
+        {/* ── Two-column layout ────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
 
-          {/* ── Left ────────────────────────────────────────────── */}
+          {/* ── Left: description card ───────────────────────── */}
           <motion.div
             className="space-y-6"
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
-            {/* Title */}
-            <div>
-              {p.category && (
-                <p className="font-mono text-xs uppercase tracking-[0.25em] text-cyan-400 mb-3">{p.category}</p>
-              )}
-              <h1 className="font-heading font-black text-4xl md:text-5xl lg:text-6xl leading-tight">
-                <span className="bg-gradient-to-br from-slate-100 via-slate-200 to-slate-400 bg-clip-text text-transparent">
-                  {p.title}
-                </span>
-              </h1>
-            </div>
-
-            {/* Info card */}
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50">
               <div className="absolute inset-0 bg-gradient-to-br from-[#0d1f3c] via-[#0a1628] to-[#06101e]" />
               <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
@@ -393,6 +396,26 @@ export default function ProjectDetail() {
                   <SectionLabel icon={FileText} label="Description" color="violet" />
                   <p className="text-slate-300 leading-relaxed text-sm md:text-base">{p.description}</p>
                 </div>
+
+                {p.challenge?.trim() ? (
+                  <>
+                    <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <div>
+                      <SectionLabel icon={TriangleAlert} label="Challenge" color="violet" />
+                      <p className="text-slate-300 leading-relaxed text-sm md:text-base">{p.challenge}</p>
+                    </div>
+                  </>
+                ) : null}
+
+                {p.solution?.trim() ? (
+                  <>
+                    <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                    <div>
+                      <SectionLabel icon={Lightbulb} label="Solution" color="emerald" />
+                      <p className="text-slate-300 leading-relaxed text-sm md:text-base">{p.solution}</p>
+                    </div>
+                  </>
+                ) : null}
 
                 {/* Technologies */}
                 {p.tags?.length > 0 && (
@@ -436,10 +459,10 @@ export default function ProjectDetail() {
             </div>
           </motion.div>
 
-          {/* ── Right: gallery ───────────────────────────────────── */}
+          {/* ── Right: gallery + feedback ─────────────────────── */}
           <motion.div
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
+            transition={{ duration: 0.5, delay: 0.18 }}
             className="lg:sticky lg:top-10 space-y-6"
           >
             <Gallery images={allImages} title={p.title} />

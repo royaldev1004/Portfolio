@@ -116,31 +116,36 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
             />
           </div>
           <motion.div
-            className="p-5 flex items-center justify-between gap-3"
+            className="p-5 flex items-start justify-between gap-3"
             whileHover={{ y: -3 }}
             transition={{ type: "spring", stiffness: 250, damping: 20 }}
           >
-            <div className="min-w-0">
-              <h3 className="font-heading font-semibold text-base text-foreground">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-heading font-bold text-lg md:text-xl text-foreground leading-snug">
                 {project.title}
               </h3>
-              <p className="font-mono-caption uppercase text-muted-foreground mt-1">
-                {project.category}
-              </p>
-              {project.role ? (
-                <p className="font-mono-caption uppercase text-primary mt-1">
-                  {project.role}
-                </p>
-              ) : null}
-              <div className="mt-3 flex flex-wrap gap-2">
-                {(project.tags?.length ? project.tags : [project.category, project.role].filter(Boolean)).slice(0, 4).map((tag) => (
-                  <span key={tag} className="px-2 py-1 rounded-md text-[10px] uppercase border border-border text-muted-foreground">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              {project.tags?.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {project.tags.slice(0, 4).map((tag, i) => {
+                    const colors = [
+                      "border-cyan-400/30 bg-cyan-400/10 text-cyan-300",
+                      "border-violet-400/30 bg-violet-400/10 text-violet-300",
+                      "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+                      "border-amber-400/30 bg-amber-400/10 text-amber-300",
+                    ];
+                    return (
+                      <span
+                        key={tag}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border uppercase tracking-wide ${colors[i % colors.length]}`}
+                      >
+                        {tag}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            <div className="w-8 h-8 shrink-0 rounded-full border border-border flex items-center justify-center group-hover:border-primary group-hover:text-primary transition-colors">
+            <div className="w-8 h-8 shrink-0 rounded-full border border-border flex items-center justify-center group-hover:border-primary group-hover:text-primary transition-colors mt-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" />
             </div>
           </motion.div>

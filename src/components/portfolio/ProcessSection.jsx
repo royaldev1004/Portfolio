@@ -123,28 +123,31 @@ export default function ProcessSection() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.6, delay: index * 0.12 }}
-                  className="group relative p-8 md:p-10 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-500 hover:shadow-lg hover:shadow-primary/5 flex flex-col h-full"
+                  className="group relative p-8 md:p-10 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f2342]/92 via-[#0a1628]/92 to-[#06101e]/96 hover:border-cyan-300/30 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-900/20 flex flex-col h-full overflow-hidden"
                 >
+                  <div className="absolute top-0 right-0 w-28 h-28 bg-cyan-400/5 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-violet-500/5 rounded-full blur-2xl pointer-events-none" />
+
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5 text-primary" aria-hidden />
+                    <div className="w-12 h-12 rounded-xl bg-cyan-400/10 border border-cyan-300/25 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-cyan-300" aria-hidden />
                     </div>
-                    <span className="font-mono-caption text-muted-foreground/60 text-lg tabular-nums">{pillar.number}</span>
+                    <span className="font-mono-caption text-cyan-200/70 text-lg tabular-nums tracking-wider">{pillar.number}</span>
                   </div>
-                  <p className="font-mono-caption text-primary mb-2">{pillar.subtitle}</p>
-                  <h3 className="font-heading font-bold text-xl text-foreground mb-4">{pillar.title}</h3>
-                  <p className="text-muted-foreground font-medium leading-relaxed mb-6 text-sm md:text-base flex-1">
+                  <p className="font-mono-caption text-cyan-300 mb-2">{pillar.subtitle}</p>
+                  <h3 className="font-heading font-black text-2xl text-slate-100 mb-4">{pillar.title}</h3>
+                  <p className="text-slate-300/95 font-medium leading-relaxed mb-6 text-sm md:text-base flex-1">
                     {pillar.description}
                   </p>
                   <div>
-                    <p className="font-mono-caption uppercase text-muted-foreground/80 mb-3 tracking-wider text-[11px]">
+                    <p className="font-mono-caption uppercase text-amber-300/85 mb-3 tracking-wider text-[11px]">
                       Outcomes
                     </p>
                     <ul className="space-y-2.5">
                       {pillar.details.map((detail) => (
                         <li key={detail} className="flex items-start gap-2.5">
-                          <span className="mt-2 w-1 h-1 rounded-full bg-primary shrink-0" aria-hidden />
-                          <span className="text-sm text-foreground/90 leading-snug">{detail}</span>
+                          <span className="mt-2 w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.6)] shrink-0" aria-hidden />
+                          <span className="text-sm text-slate-200/95 leading-snug">{detail}</span>
                         </li>
                       ))}
                     </ul>

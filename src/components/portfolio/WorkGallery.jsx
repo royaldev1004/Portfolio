@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "./ProjectCard";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -8,8 +8,18 @@ import { FALLBACK_PROJECTS } from "@/data/portfolio-projects-fallback";
 
 export { FALLBACK_PROJECTS };
 
+const WORK_CATEGORIES = [
+  { id: "all", label: "All" },
+  { id: "low-code", label: "Low-Code" },
+  { id: "ai-voice-agent", label: "AI Voice Agent" },
+  { id: "automation", label: "Automation" },
+  { id: "ghl", label: "GHL" },
+];
+
 export default function WorkGallery() {
   const useDb = isSupabaseConfigured();
+  const [activeCategory, setActiveCategory] = useState("all");
+
   const { data: dbProjects, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "projects"],
     enabled: useDb,
@@ -23,8 +33,30 @@ export default function WorkGallery() {
   const projects = useDb
     ? (isLoading ? [] : (!isError && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS))
     : FALLBACK_PROJECTS;
+
   const notableProjects = projects.filter((p) => p.tier === "notable");
   const noteworthyProjects = projects.filter((p) => p.tier !== "notable");
+
+  // Filter noteworthy by selected category
+  const filteredNoteworthy = activeCategory === "all"
+    ? noteworthyProjects
+    : noteworthyProjects.filter((p) => p.workCategory === activeCategory);
+
+  // Group filtered noteworthy projects by subcategory
+  const groupedNoteworthy = filteredNoteworthy.reduce((acc, project) => {
+    const key = project.subcategory?.trim() || "__none__";
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(project);
+    return acc;
+  }, {});
+
+  // Ordered subcategory keys: named ones first (in insertion order), then __none__
+  const subcategoryKeys = [
+    ...Object.keys(groupedNoteworthy).filter((k) => k !== "__none__"),
+    ...(groupedNoteworthy["__none__"] ? ["__none__"] : []),
+  ];
+
+  const showSubcategories = activeCategory !== "all" && subcategoryKeys.some((k) => k !== "__none__");
 
   return (
     <section id="work" className="py-24 md:py-32 px-[7.5vw] relative overflow-hidden">
@@ -54,6 +86,7 @@ export default function WorkGallery() {
       </div>
 
       <div className="space-y-16">
+        {/* Notable projects */}
         <div>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {useDb && isLoading ? (
@@ -68,6 +101,7 @@ export default function WorkGallery() {
           </div>
         </div>
 
+        {/* Noteworthy projects */}
         <div>
           <h3 className="font-heading font-semibold text-2xl md:text-3xl text-foreground mb-2 text-center">
             Other{" "}
@@ -76,16 +110,77 @@ export default function WorkGallery() {
             </span>{" "}
             Projects
           </h3>
-          <p className="text-muted-foreground mb-6 text-center">
+          <p className="text-muted-foreground mb-8 text-center">
             Additional work that demonstrates breadth across domains and delivery styles.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {!useDb || !isLoading ? (
-              noteworthyProjects.map((project, index) => (
-                <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
-              ))
-            ) : null}
+
+          {/* Category filter tabs */}
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            {WORK_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ${
+                  activeCategory === cat.id
+                    ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25"
+                    : "border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground bg-transparent"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
+
+          {/* Projects grid — with optional subcategory grouping */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              {!useDb || !isLoading ? (
+                filteredNoteworthy.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-12 text-sm">
+                    No projects in this category yet.
+                  </p>
+                ) : showSubcategories ? (
+                  <div className="space-y-12">
+                    {subcategoryKeys.map((subcatKey) => {
+                      const group = groupedNoteworthy[subcatKey];
+                      const label = subcatKey === "__none__" ? null : subcatKey;
+                      return (
+                        <div key={subcatKey}>
+                          {label && (
+                            <div className="flex items-center gap-4 mb-6">
+                              <h4 className="font-heading font-black text-xl md:text-2xl whitespace-nowrap">
+                                <span className="bg-gradient-to-r from-cyan-300 via-primary to-violet-300 bg-clip-text text-transparent">
+                                  {label}
+                                </span>
+                              </h4>
+                              <div className="h-px flex-1 bg-gradient-to-r from-primary/50 to-transparent" />
+                            </div>
+                          )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {group.map((project, index) => (
+                              <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredNoteworthy.map((project, index) => (
+                      <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
+                    ))}
+                  </div>
+                )
+              ) : null}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </section>

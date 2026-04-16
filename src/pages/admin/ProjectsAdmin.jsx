@@ -2,15 +2,26 @@ import React, { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { mapProjectRow, projectToSupabasePayload } from "@/lib/experience-mappers";
-import { Check, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Loader2, Plus, Trash2, Upload, X, CloudUpload } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage, FormField, ToggleField, HighlightsInput, ItemList } from "./shared/AdminComponents";
 
 const STORAGE_BUCKET = "portfolio-media";
 
+const WORK_CATEGORY_OPTIONS = [
+  { value: "", label: "— None —" },
+  { value: "low-code", label: "Low-Code" },
+  { value: "ai-voice-agent", label: "AI Voice Agent" },
+  { value: "automation", label: "Automation" },
+  { value: "ghl", label: "GHL" },
+];
+
 const EMPTY = {
   title: "", category: "", role: "", description: "",
-  image: "", screenshots: [], url: "", tier: "notable", tags: [], tall: false, order: 0,
+  image: "", screenshots: [], url: "", tier: "notable",
+  workCategory: "", subcategory: "",
+  challenge: "", solution: "",
+  tags: [], tall: false, order: 0,
   feedbackText: "", feedbackAuthor: "",
 };
 
@@ -87,11 +98,10 @@ function CoverImagePanel({ value, onChange }) {
 // ── Screenshots gallery panel ──────────────────────────────────────────────
 function ScreenshotsPanel({ value = [], onChange }) {
   const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef(null);
 
-  const handleFiles = async (e) => {
-    const files = Array.from(e.target.files || []);
-    e.target.value = "";
+  const uploadFiles = async (files) => {
     if (!files.length) return;
     setUploading(true);
     try {
@@ -100,6 +110,30 @@ function ScreenshotsPanel({ value = [], onChange }) {
       toast.success(`${urls.length} screenshot(s) uploaded.`);
     } catch (err) { handleUploadError(err); }
     finally { setUploading(false); }
+  };
+
+  const handleFiles = async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = "";
+    await uploadFiles(files);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    setDragActive(true);
+  };
+
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    setDragActive(false);
+  };
+
+  const onDrop = async (e) => {
+    e.preventDefault();
+    setDragActive(false);
+    const files = Array.from(e.dataTransfer.files || []);
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    await uploadFiles(imageFiles);
   };
 
   const addUrl = () => onChange([...value, ""]);
@@ -139,6 +173,25 @@ function ScreenshotsPanel({ value = [], onChange }) {
           ))}
         </div>
       )}
+
+      {/* Actions */}
+      <div
+        onDragOver={onDragOver}
+        onDragEnter={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        className={`rounded-xl border-2 border-dashed p-4 transition-colors ${
+          dragActive
+            ? "border-primary bg-primary/10"
+            : "border-border/70 bg-muted/20"
+        }`}
+      >
+        <div className="flex flex-col items-center justify-center text-center gap-1.5">
+          <CloudUpload className="w-5 h-5 text-primary" />
+          <p className="text-xs font-medium text-foreground">Drag & drop multiple screenshots here</p>
+          <p className="text-[11px] text-muted-foreground">or use Upload files below</p>
+        </div>
+      </div>
 
       {/* Actions */}
       <div className="flex gap-2">
@@ -187,13 +240,29 @@ function ProjectModal({ item, onClose, onSave, saving }) {
           {/* Left — fields */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4 lg:border-r lg:border-border">
             <FormField label="Title" value={form.title} onChange={set("title")} placeholder="Project title" />
-            <FormField label="Category" value={form.category} onChange={set("category")} placeholder="e.g. Brand & product" />
-            <FormField label="Role" value={form.role} onChange={set("role")} placeholder="e.g. Lead Developer" />
+            <FormField label="Role" value={form.role} onChange={set("role")} placeholder="e.g. CRM & AI Engineer" />
             <FormField label="Project Group" value={form.tier} onChange={set("tier")} options={["notable", "noteworthy"]} />
+            <FormField
+              label="Work Category (filter tab)"
+              value={form.workCategory ?? ""}
+              onChange={set("workCategory")}
+              options={WORK_CATEGORY_OPTIONS}
+            />
+            <FormField label="Subcategory (optional grouping)" value={form.subcategory ?? ""} onChange={set("subcategory")} placeholder="e.g. Medical Spa, eCommerce" />
             <FormField
               label="Description"
               value={form.description} onChange={set("description")}
               multiline placeholder="Short description of this project"
+            />
+            <FormField
+              label="Challenge"
+              value={form.challenge ?? ""} onChange={set("challenge")}
+              multiline placeholder="What core challenge did this project solve?"
+            />
+            <FormField
+              label="Solution"
+              value={form.solution ?? ""} onChange={set("solution")}
+              multiline placeholder="How did you solve it?"
             />
             <HighlightsInput label="Tech tags" value={form.tags || []} onChange={set("tags")} />
             <FormField
