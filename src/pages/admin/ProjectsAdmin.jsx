@@ -1,19 +1,18 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { mapProjectRow, projectToSupabasePayload } from "@/lib/experience-mappers";
-import { Check, Loader2, Plus, Trash2, Upload, X, CloudUpload } from "lucide-react";
+import { Check, Loader2, Plus, Trash2, Upload, X, CloudUpload, Pencil, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { AdminPage, FormField, ToggleField, HighlightsInput, ItemList } from "./shared/AdminComponents";
+import { AdminPage, FormField, ToggleField, HighlightsInput } from "./shared/AdminComponents";
 
 const STORAGE_BUCKET = "portfolio-media";
 
-const WORK_CATEGORY_OPTIONS = [
-  { value: "", label: "— None —" },
-  { value: "low-code", label: "Low-Code" },
-  { value: "ai-voice-agent", label: "AI Voice Agent" },
-  { value: "automation", label: "Automation" },
-  { value: "ghl", label: "GHL" },
+const DEFAULT_CATEGORIES = [
+  { slug: "low-code", label: "Low-Code", sort_order: 0 },
+  { slug: "ai-voice-agent", label: "AI Voice Agent", sort_order: 1 },
+  { slug: "automation", label: "Automation", sort_order: 2 },
+  { slug: "ghl", label: "GHL", sort_order: 3 },
 ];
 
 const EMPTY = {
@@ -21,6 +20,7 @@ const EMPTY = {
   image: "", screenshots: [], url: "", tier: "notable",
   workCategory: "", subcategory: "",
   challenge: "", solution: "",
+  visible: true,
   tags: [], tall: false, order: 0,
   feedbackText: "", feedbackAuthor: "",
 };
@@ -215,7 +215,7 @@ function ScreenshotsPanel({ value = [], onChange }) {
 }
 
 // ── Two-column project modal ───────────────────────────────────────────────
-function ProjectModal({ item, onClose, onSave, saving }) {
+function ProjectModal({ item, onClose, onSave, saving, categoryOptions }) {
   const [form, setForm] = useState(item || EMPTY);
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -246,7 +246,7 @@ function ProjectModal({ item, onClose, onSave, saving }) {
               label="Work Category (filter tab)"
               value={form.workCategory ?? ""}
               onChange={set("workCategory")}
-              options={WORK_CATEGORY_OPTIONS}
+              options={categoryOptions}
             />
             <FormField label="Subcategory (optional grouping)" value={form.subcategory ?? ""} onChange={set("subcategory")} placeholder="e.g. Medical Spa, eCommerce" />
             <FormField
@@ -284,6 +284,7 @@ function ProjectModal({ item, onClose, onSave, saving }) {
               <FormField label="Display Order" value={form.order} onChange={(v) => set("order")(Number(v))} type="number" />
               <ToggleField label="Tall card" value={form.tall} onChange={set("tall")} />
             </div>
+            <ToggleField label="Visible on site" value={form.visible ?? true} onChange={set("visible")} />
           </div>
 
           {/* Right — images */}
@@ -317,6 +318,12 @@ export default function ProjectsAdmin() {
   const qc = useQueryClient();
   const [modal, setModal] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [newCategoryLabel, setNewCategoryLabel] = useState("");
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [editingCategorySlug, setEditingCategorySlug] = useState(null);
+  const [editingCategoryLabel, setEditingCategoryLabel] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
 
   const { data = [], isLoading, error, refetch } = useQuery({
     queryKey: ["projects", "supabase"],
@@ -326,6 +333,42 @@ export default function ProjectsAdmin() {
       return (data || []).map(mapProjectRow);
     },
   });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["project-categories", "supabase"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("project_categories").select("*").order("sort_order", { ascending: true });
+      if (error) throw error;
+      if (!data?.length) return DEFAULT_CATEGORIES;
+      return data;
+    },
+  });
+
+  const categoryOptions = useMemo(
+    () => [{ value: "", label: "— None —" }, ...categories.map((c) => ({ value: c.slug, label: c.label }))],
+    [categories],
+  );
+
+  useEffect(() => {
+    if (selectedCategory === "all") return;
+    const exists = categories.some((c) => c.slug === selectedCategory);
+    if (!exists && selectedCategory !== "__uncategorized__") {
+      setSelectedCategory("all");
+    }
+  }, [categories, selectedCategory]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { all: data.length, __uncategorized__: data.filter((p) => !p.workCategory).length };
+    for (const category of categories) {
+      counts[category.slug] = data.filter((p) => p.workCategory === category.slug).length;
+    }
+    return counts;
+  }, [data, categories]);
+
+  const filteredProjects = useMemo(() => {
+    if (selectedCategory === "all") return data;
+    if (selectedCategory === "__uncategorized__") return data.filter((item) => !item.workCategory);
+    return data.filter((item) => item.workCategory === selectedCategory);
+  }, [data, selectedCategory]);
 
   const save = async (form) => {
     setSaving(true);
@@ -362,15 +405,330 @@ export default function ProjectsAdmin() {
     }
   };
 
+  const setVisibility = async (id, visible) => {
+    try {
+      const { error } = await supabase.from("projects").update({ is_visible: visible }).eq("id", id);
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["portfolio", "projects"] });
+      toast.success(visible ? "Project is now visible." : "Project hidden from public site.");
+    } catch (e) {
+      toast.error(e?.message || "Could not update visibility");
+    }
+  };
+
+  const slugify = (value) => value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+  const addCategory = async () => {
+    const label = newCategoryLabel.trim();
+    if (!label) return;
+    const slug = slugify(label);
+    if (!slug) {
+      toast.error("Invalid category name");
+      return;
+    }
+    if (categories.some((c) => c.slug === slug)) {
+      toast.error("Category already exists");
+      return;
+    }
+
+    setAddingCategory(true);
+    try {
+      const nextOrder = (categories[categories.length - 1]?.sort_order ?? -1) + 1;
+      const { error } = await supabase.from("project_categories").insert({
+        slug,
+        label,
+        sort_order: nextOrder,
+      });
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      setNewCategoryLabel("");
+      setSelectedCategory(slug);
+      toast.success("Category added");
+    } catch (e) {
+      toast.error(e?.message || "Could not add category");
+    } finally {
+      setAddingCategory(false);
+    }
+  };
+
+  const startEditCategory = (category) => {
+    setEditingCategorySlug(category.slug);
+    setEditingCategoryLabel(category.label);
+  };
+
+  const saveCategoryLabel = async () => {
+    const label = editingCategoryLabel.trim();
+    if (!editingCategorySlug || !label) return;
+    setSavingCategory(true);
+    try {
+      const { error } = await supabase
+        .from("project_categories")
+        .update({ label })
+        .eq("slug", editingCategorySlug);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      toast.success("Category updated");
+      setEditingCategorySlug(null);
+      setEditingCategoryLabel("");
+    } catch (e) {
+      toast.error(e?.message || "Could not update category");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const deleteCategory = async (category) => {
+    if (!confirm(`Delete "${category.label}" category? Projects in this category will be moved to Uncategorized.`)) return;
+    setSavingCategory(true);
+    try {
+      const { error: updateErr } = await supabase
+        .from("projects")
+        .update({ work_category: null })
+        .eq("work_category", category.slug);
+      if (updateErr) throw updateErr;
+
+      const { error: deleteErr } = await supabase
+        .from("project_categories")
+        .delete()
+        .eq("slug", category.slug);
+      if (deleteErr) throw deleteErr;
+
+      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      await qc.invalidateQueries({ queryKey: ["projects"] });
+      await qc.invalidateQueries({ queryKey: ["portfolio", "projects"] });
+      if (selectedCategory === category.slug) setSelectedCategory("__uncategorized__");
+      toast.success("Category deleted");
+    } catch (e) {
+      toast.error(e?.message || "Could not delete category");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
+  const setCategoryVisibility = async (category, visible) => {
+    setSavingCategory(true);
+    try {
+      const { error } = await supabase
+        .from("project_categories")
+        .update({ is_visible: visible })
+        .eq("slug", category.slug);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      toast.success(visible ? "Category shown on frontend tabs." : "Category hidden from frontend tabs.");
+    } catch (e) {
+      toast.error(e?.message || "Could not update category visibility");
+    } finally {
+      setSavingCategory(false);
+    }
+  };
+
   return (
     <AdminPage title="Projects" description="Manage your work gallery." onAdd={() => setModal({})}>
-      <ItemList
-        items={data} isLoading={isLoading} error={error?.message} onRetry={refetch}
-        onEdit={setModal} onDelete={del}
-        primaryKey="title" secondaryKey="tier" tertiaryKey="role"
-      />
+      {isLoading ? (
+        <div className="flex items-center gap-3 py-16 text-muted-foreground">
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <span className="text-sm">Loading…</span>
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-4">
+          <p className="text-sm text-destructive mb-2">{error?.message}</p>
+          <button type="button" onClick={refetch} className="text-sm text-primary underline underline-offset-2">Try again</button>
+        </div>
+      ) : !data.length ? (
+        <p className="py-16 text-center text-sm text-muted-foreground">No entries yet. Click Add to create the first one.</p>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6">
+          <aside className="rounded-xl border border-border/70 bg-card p-4 h-fit">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Categories</p>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("all")}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                  selectedCategory === "all" ? "bg-primary/10 text-primary border border-primary/30" : "border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                }`}
+              >
+                <span>All</span>
+                <span className="text-xs">{categoryCounts.all ?? 0}</span>
+              </button>
+              {categories.map((category) => (
+                <div
+                  key={category.slug}
+                  className={`w-full rounded-lg border px-2 py-2 transition-colors ${
+                    selectedCategory === category.slug
+                      ? "bg-primary/10 text-primary border-primary/30"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                  }`}
+                >
+                  {editingCategorySlug === category.slug ? (
+                    <div className="space-y-2">
+                      <input
+                        value={editingCategoryLabel}
+                        onChange={(e) => setEditingCategoryLabel(e.target.value)}
+                        className="w-full text-xs bg-background border border-border rounded-md px-2 py-1.5 focus:outline-none focus:border-primary transition-colors"
+                      />
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={saveCategoryLabel}
+                          disabled={savingCategory || !editingCategoryLabel.trim()}
+                          className="flex-1 text-[11px] px-2 py-1 rounded-md bg-primary text-primary-foreground disabled:opacity-60"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingCategorySlug(null);
+                            setEditingCategoryLabel("");
+                          }}
+                          className="text-[11px] px-2 py-1 rounded-md border border-border"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory(category.slug)}
+                        className="w-full flex items-start justify-between gap-2 text-left"
+                      >
+                        <span className="text-sm leading-snug break-words">{category.label}</span>
+                        <span className="shrink-0 text-[11px] px-2 py-0.5 rounded-full border border-border/70 bg-background/60">
+                          {categoryCounts[category.slug] ?? 0}
+                        </span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => startEditCategory(category)}
+                          className="h-7 px-2 rounded-md border border-border/70 inline-flex items-center gap-1.5 hover:border-primary hover:text-primary transition-colors"
+                          aria-label={`Edit ${category.label}`}
+                        >
+                          <Pencil className="w-3 h-3" />
+                          <span className="text-[11px]">Edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCategoryVisibility(category, category.is_visible === false)}
+                          disabled={savingCategory}
+                          className="h-7 px-2 rounded-md border border-border/70 inline-flex items-center gap-1.5 hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
+                          aria-label={category.is_visible === false ? `Show ${category.label} on frontend` : `Hide ${category.label} on frontend`}
+                          title={category.is_visible === false ? "Show on frontend tabs" : "Hide from frontend tabs"}
+                        >
+                          {category.is_visible === false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                          <span className="text-[11px]">{category.is_visible === false ? "Show" : "Hide"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteCategory(category)}
+                          disabled={savingCategory}
+                          className="h-7 px-2 rounded-md border border-border/70 inline-flex items-center gap-1.5 hover:border-destructive hover:text-destructive transition-colors disabled:opacity-60"
+                          aria-label={`Delete ${category.label}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          <span className="text-[11px]">Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("__uncategorized__")}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                  selectedCategory === "__uncategorized__" ? "bg-primary/10 text-primary border border-primary/30" : "border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                }`}
+              >
+                <span>Uncategorized</span>
+                <span className="text-xs">{categoryCounts.__uncategorized__ ?? 0}</span>
+              </button>
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-border/70 space-y-2">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">Add category</p>
+              <input
+                value={newCategoryLabel}
+                onChange={(e) => setNewCategoryLabel(e.target.value)}
+                placeholder="Category name"
+                className="w-full text-sm bg-background border border-border rounded-lg px-3 py-2 focus:outline-none focus:border-primary transition-colors"
+              />
+              <button
+                type="button"
+                onClick={addCategory}
+                disabled={addingCategory || !newCategoryLabel.trim()}
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-60"
+              >
+                {addingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                Add Category
+              </button>
+            </div>
+          </aside>
+
+          <div className="rounded-xl border border-border/70 bg-card overflow-hidden divide-y divide-border/70">
+            {filteredProjects.length === 0 ? (
+              <p className="p-6 text-sm text-muted-foreground">No projects in this category yet.</p>
+            ) : filteredProjects.map((item) => (
+              <div key={item.id} className="flex items-start justify-between gap-4 px-5 py-4 hover:bg-muted/30 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading font-semibold text-sm text-foreground leading-snug">{item.title}</p>
+                  <p className="font-mono text-xs text-primary mt-0.5 tracking-tight">{item.tier}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.role}</p>
+                  <p className={`text-xs mt-1.5 ${item.visible === false ? "text-amber-500" : "text-emerald-500"}`}>
+                    {item.visible === false ? "Hidden on frontend" : "Visible on frontend"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setVisibility(item.id, item.visible === false)}
+                    className="h-8 px-2.5 rounded-full border border-border bg-background flex items-center justify-center text-xs text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                  >
+                    {item.visible === false ? (
+                      <>
+                        <Eye className="w-3.5 h-3.5 mr-1" /> Show
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5 mr-1" /> Hide
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModal(item)}
+                    className="w-8 h-8 rounded-full border border-border bg-background flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    aria-label="Edit"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => del(item.id)}
+                    className="w-8 h-8 rounded-full border border-border bg-background flex items-center justify-center text-muted-foreground hover:border-destructive hover:text-destructive transition-colors"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {modal !== null && (
-        <ProjectModal item={modal?.id ? modal : null} onClose={() => setModal(null)} onSave={save} saving={saving} />
+        <ProjectModal
+          item={modal?.id ? modal : null}
+          onClose={() => setModal(null)}
+          onSave={save}
+          saving={saving}
+          categoryOptions={categoryOptions}
+        />
       )}
     </AdminPage>
   );

@@ -85,6 +85,7 @@ export function mapProjectRow(row) {
     screenshots,
     feedbackText: row.feedback_text ?? "",
     feedbackAuthor: row.feedback_author ?? "",
+    visible: row.is_visible ?? true,
     tall: Boolean(row.tall),
     order: row.sort_order ?? 0,
   };
@@ -107,6 +108,7 @@ export function projectToSupabasePayload(form) {
     screenshot_urls: Array.isArray(form.screenshots) ? form.screenshots : [],
     feedback_text: form.feedbackText ?? "",
     feedback_author: form.feedbackAuthor ?? "",
+    is_visible: form.visible ?? true,
     tall: Boolean(form.tall),
     sort_order: Number(form.order) || 0,
   };

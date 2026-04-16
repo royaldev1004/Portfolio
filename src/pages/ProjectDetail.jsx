@@ -304,7 +304,7 @@ export default function ProjectDetail() {
     );
   }
 
-  if (!p) {
+  if (!p || p.visible === false) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#050d1a] px-6 text-center">
         <p className="text-slate-400">Project not found.</p>

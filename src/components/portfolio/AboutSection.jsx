@@ -135,9 +135,10 @@ export default function AboutSection() {
   const projects = useDb
     ? (projectsLoading ? [] : (!projectsErr && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS))
     : FALLBACK_PROJECTS;
+  const visibleProjects = projects.filter((p) => p.visible !== false);
   const recentWorkProjects = useMemo(
-    () => resolveRecentWorkProjects(projects, settings?.about_recent_work_project_ids),
-    [projects, settings?.about_recent_work_project_ids],
+    () => resolveRecentWorkProjects(visibleProjects, settings?.about_recent_work_project_ids),
+    [visibleProjects, settings?.about_recent_work_project_ids],
   );
 
   return (

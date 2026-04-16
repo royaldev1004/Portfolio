@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "./ProjectCard";
@@ -8,13 +8,13 @@ import { FALLBACK_PROJECTS } from "@/data/portfolio-projects-fallback";
 
 export { FALLBACK_PROJECTS };
 
-const WORK_CATEGORIES = [
-  { id: "all", label: "All" },
-  { id: "low-code", label: "Low-Code" },
-  { id: "ai-voice-agent", label: "AI Voice Agent" },
-  { id: "automation", label: "Automation" },
-  { id: "ghl", label: "GHL" },
-];
+function toCategoryLabel(slug) {
+  return String(slug || "")
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 export default function WorkGallery() {
   const useDb = isSupabaseConfigured();
@@ -29,13 +29,37 @@ export default function WorkGallery() {
       return (data || []).map(mapProjectRow);
     },
   });
+  const { data: dbCategories = [] } = useQuery({
+    queryKey: ["portfolio", "project-categories"],
+    enabled: useDb,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("project_categories").select("*").order("sort_order", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const projects = useDb
     ? (isLoading ? [] : (!isError && dbProjects?.length ? dbProjects : FALLBACK_PROJECTS))
     : FALLBACK_PROJECTS;
+  const visibleProjects = projects.filter((p) => p.visible !== false);
 
-  const notableProjects = projects.filter((p) => p.tier === "notable");
-  const noteworthyProjects = projects.filter((p) => p.tier !== "notable");
+  const notableProjects = visibleProjects.filter((p) => p.tier === "notable");
+  const noteworthyProjects = visibleProjects.filter((p) => p.tier !== "notable");
+  const categoryTabs = useMemo(() => {
+    if (dbCategories.length) {
+      return [{ id: "all", label: "All" }, ...dbCategories.filter((c) => c.is_visible !== false).map((c) => ({ id: c.slug, label: c.label }))];
+    }
+    const set = new Set(noteworthyProjects.map((p) => p.workCategory).filter(Boolean));
+    return [{ id: "all", label: "All" }, ...Array.from(set).map((slug) => ({ id: slug, label: toCategoryLabel(slug) }))];
+  }, [dbCategories, noteworthyProjects]);
+
+  // If currently selected category becomes hidden, fall back to "all".
+  React.useEffect(() => {
+    if (activeCategory === "all") return;
+    const exists = categoryTabs.some((tab) => tab.id === activeCategory);
+    if (!exists) setActiveCategory("all");
+  }, [activeCategory, categoryTabs]);
 
   // Filter noteworthy by selected category
   const filteredNoteworthy = activeCategory === "all"
@@ -116,7 +140,7 @@ export default function WorkGallery() {
 
           {/* Category filter tabs */}
           <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {WORK_CATEGORIES.map((cat) => (
+            {categoryTabs.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
