@@ -79,6 +79,7 @@ create table if not exists skill_groups (
   icon_name text default 'Globe',
   color_key text default 'blue',
   sort_order int default 0,
+  is_visible boolean not null default true,
   created_at timestamptz default now()
 );
 

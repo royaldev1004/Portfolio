@@ -178,6 +178,7 @@ export function mapSkillGroupRow(row, skills = []) {
     skills: skills.map((s) => s.skill_name),
     skillRows: skills,
     order: row.sort_order ?? 0,
+    visible: row.is_visible ?? true,
   };
 }
 
@@ -188,6 +189,7 @@ export function skillGroupToSupabasePayload(form) {
     icon_name: form.iconName ?? "Globe",
     color_key: form.colorKey ?? "blue",
     sort_order: Number(form.order) || 0,
+    is_visible: form.visible ?? true,
   };
 }
 

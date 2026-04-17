@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { mapSkillGroupRow, skillGroupToSupabasePayload } from "@/lib/experience-mappers";
-import { Check, Loader2, Plus, Pencil, Trash2, ChevronDown, ChevronRight, X } from "lucide-react";
+import { Check, Loader2, Pencil, Trash2, ChevronDown, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage, FormField, HighlightsInput, ColorKeyField, Modal, ICON_OPTIONS, COLOR_THEME } from "./shared/AdminComponents";
+import { Switch } from "@/components/ui/switch";
 
-const EMPTY_GROUP = { label: "", caption: "", iconName: "Globe", colorKey: "blue", order: 0 };
+const EMPTY_GROUP = { label: "", caption: "", iconName: "Globe", colorKey: "blue", order: 0, visible: true };
 
 function GroupModal({ item, onClose, onSave, saving }) {
   const [form, setForm] = useState(item ? { ...item, skills: item.skills || [] } : { ...EMPTY_GROUP, skills: [] });
@@ -32,7 +33,7 @@ function GroupModal({ item, onClose, onSave, saving }) {
   );
 }
 
-function GroupRow({ group, onEdit, onDelete, onAddSkill, onDeleteSkill }) {
+function GroupRow({ group, onEdit, onDelete, onDeleteSkill, onToggleVisibility, visibilitySaving }) {
   const [open, setOpen] = useState(false);
   const theme = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
   return (
@@ -45,26 +46,52 @@ function GroupRow({ group, onEdit, onDelete, onAddSkill, onDeleteSkill }) {
           <span className={`text-[10px] font-bold ${theme.color}`}>{group.label?.[0]}</span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-heading font-semibold text-sm text-foreground">{group.label}</p>
+          <p className="font-heading font-semibold text-sm text-foreground flex items-center gap-2 flex-wrap">
+            {group.label}
+            {group.visible === false && (
+              <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400">
+                Hidden
+              </span>
+            )}
+          </p>
           <p className={`font-mono text-[10px] uppercase tracking-wider ${theme.color}`}>{group.caption}</p>
         </div>
-        <span className="font-mono text-xs text-muted-foreground/50 mr-2">{group.skills?.length || 0} skills</span>
-        <button type="button" onClick={() => onEdit(group)}
-          className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors">
+        <span className="font-mono text-xs text-muted-foreground/50 shrink-0">{group.skills?.length || 0} skills</span>
+      </div>
+      <div className="flex items-center justify-between gap-2 px-4 py-2 border-t border-border/60 bg-muted/10">
+        <span className="text-[11px] text-muted-foreground">Show on portfolio</span>
+        <Switch
+          checked={group.visible !== false}
+          disabled={visibilitySaving}
+          onCheckedChange={(v) => onToggleVisibility(group, v)}
+          aria-label={group.visible === false ? `Show ${group.label} on portfolio` : `Hide ${group.label} from portfolio`}
+        />
+      </div>
+      <div className="flex items-center gap-2 px-4 pb-3">
+        <button
+          type="button"
+          onClick={() => onEdit(group)}
+          className="h-8 px-3 rounded-md border border-border/70 inline-flex items-center gap-1.5 text-xs hover:border-primary hover:text-primary transition-colors"
+        >
           <Pencil className="w-3 h-3" />
+          Edit
         </button>
-        <button type="button" onClick={() => onDelete(group.id)}
-          className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:border-destructive hover:text-destructive transition-colors">
+        <button
+          type="button"
+          onClick={() => onDelete(group.id)}
+          className="h-8 px-3 rounded-md border border-border/70 inline-flex items-center gap-1.5 text-xs hover:border-destructive hover:text-destructive transition-colors"
+        >
           <Trash2 className="w-3 h-3" />
+          Delete
         </button>
       </div>
       {open && (
-        <div className="px-4 pb-3 pt-1 border-t border-border/60 bg-background/50">
-          <div className="flex flex-wrap gap-2 mt-2">
+        <div className="px-4 pb-3 pt-0 border-t border-border/60 bg-background/50">
+          <div className="flex flex-wrap gap-2 mt-3">
             {(group.skills || []).map((skill, i) => (
               <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-xs border border-border/50">
                 {skill}
-                <button type="button" onClick={() => onDeleteSkill(group.id, group.skillRows?.[i]?.id, i)} className="text-muted-foreground hover:text-destructive ml-0.5">
+                <button type="button" onClick={() => onDeleteSkill?.(group.id, group.skillRows?.[i]?.id, i)} className="text-muted-foreground hover:text-destructive ml-0.5">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -81,6 +108,7 @@ export default function SkillsAdmin() {
   const qc = useQueryClient();
   const [modal, setModal] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [savingVisibility, setSavingVisibility] = useState(false);
 
   const { data: groups = [], isLoading, error, refetch } = useQuery({
     queryKey: ["skill-groups", "supabase"],
@@ -132,15 +160,42 @@ export default function SkillsAdmin() {
     try {
       const { error } = await supabase.from("skill_groups").delete().eq("id", id);
       if (error) throw error;
-      qc.invalidateQueries({ queryKey: ["skill-groups"] });
+      await qc.invalidateQueries({ queryKey: ["skill-groups"] });
+      await qc.invalidateQueries({ queryKey: ["portfolio", "skills"] });
       toast.success("Deleted");
     } catch (e) {
       toast.error(e?.message || "Delete failed");
     }
   };
 
+  const setGroupVisibility = async (group, visible) => {
+    setSavingVisibility(true);
+    try {
+      const { error } = await supabase.from("skill_groups").update({ is_visible: visible }).eq("id", group.id);
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["skill-groups"] });
+      await qc.invalidateQueries({ queryKey: ["portfolio", "skills"] });
+      toast.success(visible ? "Skill group shown on the public Skills section." : "Skill group hidden from the public Skills section.");
+    } catch (e) {
+      const msg = String(e?.message || e || "");
+      if (/is_visible|column .*does not exist|42703/i.test(msg)) {
+        toast.error(
+          "Database is missing the visibility column. In Supabase → SQL, run supabase/skill_groups_visibility.sql, then try again."
+        );
+      } else {
+        toast.error(msg || "Could not update visibility");
+      }
+    } finally {
+      setSavingVisibility(false);
+    }
+  };
+
   return (
-    <AdminPage title="Skills" description="Manage skill groups and their tools." onAdd={() => setModal({})}>
+    <AdminPage
+      title="Skills"
+      description="Manage skill groups and their tools. Turn off Show on portfolio to hide a card from the public Skills section; hidden groups stay editable here."
+      onAdd={() => setModal({})}
+    >
       {isLoading && (
         <div className="flex items-center gap-3 py-16 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin text-primary" />
@@ -150,14 +205,21 @@ export default function SkillsAdmin() {
       {error && (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-4">
           <p className="text-sm text-destructive mb-2">{error.message}</p>
-          <button type="button" onClick={refetch} className="text-sm text-primary underline">Try again</button>
+          <button type="button" onClick={() => refetch()} className="text-sm text-primary underline">Try again</button>
         </div>
       )}
       {!isLoading && !error && (
         <div className="space-y-3">
           {groups.length === 0 && <p className="py-16 text-center text-sm text-muted-foreground">No skill groups yet.</p>}
           {groups.map((g) => (
-            <GroupRow key={g.id} group={g} onEdit={setModal} onDelete={del} />
+            <GroupRow
+              key={g.id}
+              group={g}
+              onEdit={setModal}
+              onDelete={del}
+              onToggleVisibility={setGroupVisibility}
+              visibilitySaving={savingVisibility}
+            />
           ))}
         </div>
       )}

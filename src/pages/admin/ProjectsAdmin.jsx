@@ -5,14 +5,15 @@ import { mapProjectRow, projectToSupabasePayload } from "@/lib/experience-mapper
 import { Check, Loader2, Plus, Trash2, Upload, X, CloudUpload, Pencil, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { AdminPage, FormField, ToggleField, HighlightsInput } from "./shared/AdminComponents";
+import { Switch } from "@/components/ui/switch";
 
 const STORAGE_BUCKET = "portfolio-media";
 
 const DEFAULT_CATEGORIES = [
-  { slug: "low-code", label: "Low-Code", sort_order: 0 },
-  { slug: "ai-voice-agent", label: "AI Voice Agent", sort_order: 1 },
-  { slug: "automation", label: "Automation", sort_order: 2 },
-  { slug: "ghl", label: "GHL", sort_order: 3 },
+  { slug: "low-code", label: "Low-Code", sort_order: 0, is_visible: true },
+  { slug: "ai-voice-agent", label: "AI Voice Agent", sort_order: 1, is_visible: true },
+  { slug: "automation", label: "Automation", sort_order: 2, is_visible: true },
+  { slug: "ghl", label: "GHL", sort_order: 3, is_visible: true },
 ];
 
 const EMPTY = {
@@ -316,6 +317,10 @@ function ProjectModal({ item, onClose, onSave, saving, categoryOptions }) {
 // ── Page ───────────────────────────────────────────────────────────────────
 export default function ProjectsAdmin() {
   const qc = useQueryClient();
+  const invalidateCategoryQueries = async () => {
+    await qc.invalidateQueries({ queryKey: ["project-categories"] });
+    await qc.invalidateQueries({ queryKey: ["portfolio", "project-categories"] });
+  };
   const [modal, setModal] = useState(null);
   const [saving, setSaving] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -439,9 +444,10 @@ export default function ProjectsAdmin() {
         slug,
         label,
         sort_order: nextOrder,
+        is_visible: true,
       });
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      await invalidateCategoryQueries();
       setNewCategoryLabel("");
       setSelectedCategory(slug);
       toast.success("Category added");
@@ -467,7 +473,7 @@ export default function ProjectsAdmin() {
         .update({ label })
         .eq("slug", editingCategorySlug);
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      await invalidateCategoryQueries();
       toast.success("Category updated");
       setEditingCategorySlug(null);
       setEditingCategoryLabel("");
@@ -494,7 +500,7 @@ export default function ProjectsAdmin() {
         .eq("slug", category.slug);
       if (deleteErr) throw deleteErr;
 
-      await qc.invalidateQueries({ queryKey: ["project-categories"] });
+      await invalidateCategoryQueries();
       await qc.invalidateQueries({ queryKey: ["projects"] });
       await qc.invalidateQueries({ queryKey: ["portfolio", "projects"] });
       if (selectedCategory === category.slug) setSelectedCategory("__uncategorized__");
@@ -514,10 +520,17 @@ export default function ProjectsAdmin() {
         .update({ is_visible: visible })
         .eq("slug", category.slug);
       if (error) throw error;
-      await qc.invalidateQueries({ queryKey: ["project-categories"] });
-      toast.success(visible ? "Category shown on frontend tabs." : "Category hidden from frontend tabs.");
+      await invalidateCategoryQueries();
+      toast.success(visible ? "Category shown on work gallery tabs." : "Category hidden from work gallery tabs.");
     } catch (e) {
-      toast.error(e?.message || "Could not update category visibility");
+      const msg = String(e?.message || e || "");
+      if (/is_visible|column .*does not exist|42703/i.test(msg)) {
+        toast.error(
+          "Database is missing the visibility column. In Supabase → SQL, run the script supabase/project_categories_visibility.sql (or re-run project_categories_and_dynamic_constraints.sql), then try again."
+        );
+      } else {
+        toast.error(msg || "Could not update category visibility");
+      }
     } finally {
       setSavingCategory(false);
     }
@@ -533,14 +546,17 @@ export default function ProjectsAdmin() {
       ) : error ? (
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-4">
           <p className="text-sm text-destructive mb-2">{error?.message}</p>
-          <button type="button" onClick={refetch} className="text-sm text-primary underline underline-offset-2">Try again</button>
+          <button type="button" onClick={() => refetch()} className="text-sm text-primary underline underline-offset-2">Try again</button>
         </div>
       ) : !data.length ? (
         <p className="py-16 text-center text-sm text-muted-foreground">No entries yet. Click Add to create the first one.</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-[260px_minmax(0,1fr)] gap-6">
           <aside className="rounded-xl border border-border/70 bg-card p-4 h-fit">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Categories</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Categories</p>
+            <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              Turn off <span className="text-foreground/90">Show on portfolio</span> to hide that tab on the public work gallery. Hidden categories stay available here for editing.
+            </p>
             <div className="space-y-2">
               <button
                 type="button"
@@ -596,11 +612,28 @@ export default function ProjectsAdmin() {
                         onClick={() => setSelectedCategory(category.slug)}
                         className="w-full flex items-start justify-between gap-2 text-left"
                       >
-                        <span className="text-sm leading-snug break-words">{category.label}</span>
+                        <span className="text-sm leading-snug break-words flex items-center gap-2 flex-wrap">
+                          {category.label}
+                          {category.is_visible === false && (
+                            <span className="text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400">
+                              Hidden
+                            </span>
+                          )}
+                        </span>
                         <span className="shrink-0 text-[11px] px-2 py-0.5 rounded-full border border-border/70 bg-background/60">
                           {categoryCounts[category.slug] ?? 0}
                         </span>
                       </button>
+
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-border/50 bg-muted/20 px-2 py-1.5">
+                        <span className="text-[11px] text-muted-foreground">Show on portfolio</span>
+                        <Switch
+                          checked={category.is_visible !== false}
+                          disabled={savingCategory}
+                          onCheckedChange={(v) => setCategoryVisibility(category, v)}
+                          aria-label={category.is_visible === false ? `Show ${category.label} on portfolio` : `Hide ${category.label} from portfolio`}
+                        />
+                      </div>
 
                       <div className="flex items-center gap-1.5">
                         <button
@@ -611,17 +644,6 @@ export default function ProjectsAdmin() {
                         >
                           <Pencil className="w-3 h-3" />
                           <span className="text-[11px]">Edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCategoryVisibility(category, category.is_visible === false)}
-                          disabled={savingCategory}
-                          className="h-7 px-2 rounded-md border border-border/70 inline-flex items-center gap-1.5 hover:border-primary hover:text-primary transition-colors disabled:opacity-60"
-                          aria-label={category.is_visible === false ? `Show ${category.label} on frontend` : `Hide ${category.label} on frontend`}
-                          title={category.is_visible === false ? "Show on frontend tabs" : "Hide from frontend tabs"}
-                        >
-                          {category.is_visible === false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                          <span className="text-[11px]">{category.is_visible === false ? "Show" : "Hide"}</span>
                         </button>
                         <button
                           type="button"

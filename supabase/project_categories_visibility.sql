@@ -1,5 +1,6 @@
 -- ============================================================
 -- Migration: hide/show project categories on frontend tabs
+-- (Also included at end of project_categories_and_dynamic_constraints.sql)
 -- ============================================================
 
 alter table public.project_categories

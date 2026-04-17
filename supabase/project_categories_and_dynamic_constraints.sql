@@ -47,5 +47,12 @@ where p.work_category is not null
   and btrim(p.work_category) <> ''
 on conflict (slug) do nothing;
 
--- 6) Refresh PostgREST schema cache.
+-- 6) Show/hide category tabs on the public work gallery (safe to re-run).
+alter table public.project_categories
+  add column if not exists is_visible boolean not null default true;
+
+update public.project_categories
+set is_visible = coalesce(is_visible, true);
+
+-- 7) Refresh PostgREST schema cache.
 notify pgrst, 'reload schema';

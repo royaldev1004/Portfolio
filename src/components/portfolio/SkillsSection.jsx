@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -170,8 +170,17 @@ export default function SkillsSection() {
     },
   });
 
+  const visibleGroups = useMemo(
+    () => (dbGroups || []).filter((g) => g.visible !== false),
+    [dbGroups]
+  );
+
   const groups = useDb
-    ? (isLoading ? [] : (!isError && dbGroups?.length ? dbGroups : FALLBACK_GROUPS))
+    ? (isLoading
+        ? []
+        : !isError && dbGroups != null
+          ? (dbGroups.length > 0 ? visibleGroups : FALLBACK_GROUPS)
+          : FALLBACK_GROUPS)
     : FALLBACK_GROUPS;
 
   return (
@@ -203,7 +212,12 @@ export default function SkillsSection() {
         {useDb && isLoading ? (
           <div className="text-muted-foreground text-sm py-4">Loading skills...</div>
         ) : (
-          <SkillCarousel groups={groups} />
+          <>
+            {useDb && !isLoading && !isError && dbGroups?.length > 0 && visibleGroups.length === 0 && (
+              <p className="text-sm text-muted-foreground py-4 mb-2">All skill groups are hidden from the portfolio.</p>
+            )}
+            <SkillCarousel groups={groups} />
+          </>
         )}
 
         <motion.div
