@@ -100,27 +100,27 @@ export default function TestimonialsSection() {
               {visible.map((t) => (
                 <div
                   key={t.id}
-                  className="relative p-7 rounded-2xl border border-white/10 bg-gradient-to-br from-[#0f2342]/90 via-[#0a1628]/90 to-[#06101e]/95 flex flex-col gap-5 hover:border-cyan-300/30 hover:shadow-xl hover:shadow-cyan-900/20 transition-all duration-300 overflow-hidden"
+                  className="relative p-7 rounded-2xl border border-border/70 bg-card/95 flex flex-col gap-5 hover:border-primary/35 hover:shadow-xl hover:shadow-primary/12 dark:border-white/10 dark:bg-gradient-to-br dark:from-[#0f2342]/90 dark:via-[#0a1628]/90 dark:to-[#06101e]/95 dark:hover:border-cyan-300/30 dark:hover:shadow-cyan-900/20 transition-all duration-300 overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 w-28 h-28 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
+                  <div className="absolute top-0 right-0 w-28 h-28 bg-amber-400/10 rounded-full blur-3xl pointer-events-none dark:bg-amber-400/5" />
+                  <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-primary/12 rounded-full blur-2xl pointer-events-none dark:bg-cyan-500/5" />
 
                   <div className="relative flex items-start justify-between gap-3">
-                    <Quote className="w-7 h-7 text-cyan-300/35 shrink-0" />
+                    <Quote className="w-7 h-7 text-primary/45 dark:text-cyan-300/35 shrink-0" />
                     <StarRating count={t.rating} />
                   </div>
 
-                  <p className="relative text-slate-200/95 leading-relaxed text-[15px] flex-1 border-l-2 border-amber-400/35 pl-4">
+                  <p className="relative text-foreground/90 dark:text-slate-200/95 leading-relaxed text-[15px] flex-1 border-l-2 border-amber-500/45 dark:border-amber-400/35 pl-4">
                     "{t.text}"
                   </p>
 
-                  <div className="relative flex items-center gap-3 pt-3 border-t border-white/10">
-                    <div className="w-10 h-10 rounded-full bg-cyan-400/12 border border-cyan-300/20 flex items-center justify-center shrink-0">
-                      <span className="font-heading font-semibold text-xs text-cyan-200">{t.avatar}</span>
+                  <div className="relative flex items-center gap-3 pt-3 border-t border-border/70 dark:border-white/10">
+                    <div className="w-10 h-10 rounded-full bg-primary/12 border border-primary/25 flex items-center justify-center shrink-0 dark:bg-cyan-400/12 dark:border-cyan-300/20">
+                      <span className="font-heading font-semibold text-xs text-primary dark:text-cyan-200">{t.avatar}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-heading font-semibold text-base text-slate-100 truncate">{t.name}</p>
-                      <p className="font-mono-caption text-slate-400 truncate">{t.role}</p>
+                      <p className="font-heading font-semibold text-base text-foreground dark:text-slate-100 truncate">{t.name}</p>
+                      <p className="font-mono-caption text-muted-foreground dark:text-slate-400 truncate">{t.role}</p>
                     </div>
                   </div>
                 </div>

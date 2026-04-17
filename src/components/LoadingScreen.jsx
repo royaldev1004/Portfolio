@@ -1,6 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function LoadingScreen() {
+  const [isDark, setIsDark] = useState(
+    () => document.documentElement.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  const logo = isDark ? "/loader-crown.svg" : "/loader-crown-light.svg";
+
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-10 bg-background">
 
@@ -25,11 +39,16 @@ export default function LoadingScreen() {
         {/* Inner static glass disc */}
         <div className="absolute h-[70%] w-[70%] rounded-full bg-card/80 shadow-[0_0_40px_rgba(0,132,255,0.14)] backdrop-blur-md" />
 
-        {/* Text-version logo restored and resized to fit */}
+        {/* Theme-aware logo */}
         <img
-          src="/loader-crown.png"
+          key={logo}
+          src={logo}
           alt="Royal Dev"
-          className="relative z-10 w-52 object-contain drop-shadow-[0_0_12px_rgba(0,180,255,0.32)]"
+          className="relative z-10 w-64 object-contain drop-shadow-[0_0_12px_rgba(0,180,255,0.32)]"
+          style={{
+            opacity: 0,
+            animation: "loaderAppear 0.8s ease-out 1s forwards",
+          }}
         />
       </div>
 

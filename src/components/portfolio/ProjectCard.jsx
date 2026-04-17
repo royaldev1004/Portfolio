@@ -60,27 +60,27 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
             transition={{ duration: 0.55, delay: 0.1 + index * 0.05 }}
           >
             <motion.div
-              className="rounded-2xl border border-cyan-400/25 bg-[#0f2342]/92 backdrop-blur-md p-5 md:p-6 shadow-2xl shadow-cyan-900/20"
+              className="rounded-2xl border border-primary/25 bg-card/95 backdrop-blur-md p-5 md:p-6 shadow-2xl shadow-primary/10 dark:border-cyan-400/25 dark:bg-[#0f2342]/92 dark:shadow-cyan-900/20"
             >
-              <p className="font-mono-caption uppercase tracking-[0.2em] text-cyan-300 mb-2">Featured Project</p>
-              <h3 className="font-heading font-semibold text-2xl text-slate-100">
+              <p className="font-mono-caption uppercase tracking-[0.2em] text-primary dark:text-cyan-300 mb-2">Featured Project</p>
+              <h3 className="font-heading font-semibold text-2xl text-foreground dark:text-slate-100">
                 {project.title}
               </h3>
               <motion.div
-                className="mt-4 rounded-xl border border-cyan-400/15 bg-[#102b4d]/70 p-4"
+                className="mt-4 rounded-xl border border-primary/20 bg-background/80 p-4 dark:border-cyan-400/15 dark:bg-[#102b4d]/70"
                 whileHover={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 240, damping: 24 }}
               >
-                <p className="text-sm text-slate-300/90 leading-relaxed line-clamp-4">
+                <p className="text-sm text-muted-foreground dark:text-slate-300/90 leading-relaxed line-clamp-4">
                   {project.description}
                 </p>
-                <span className="mt-2 inline-block text-cyan-300 text-xs font-medium">
+                <span className="mt-2 inline-block text-primary dark:text-cyan-300 text-xs font-medium">
                   View details →
                 </span>
               </motion.div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 {(project.tags?.length ? project.tags : [project.category, project.role].filter(Boolean)).slice(0, 4).map((tag) => (
-                  <span key={tag} className="px-2.5 py-1 rounded-md text-[11px] border border-cyan-400/25 bg-[#0d2749] text-slate-300">
+                  <span key={tag} className="px-2.5 py-1 rounded-md text-[11px] border border-primary/25 bg-primary/10 text-foreground/85 dark:border-cyan-400/25 dark:bg-[#0d2749] dark:text-slate-300">
                     {tag}
                   </span>
                 ))}
@@ -92,13 +92,13 @@ export default function ProjectCard({ project, index, variant = "noteworthy", fe
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-cyan-400/25 text-slate-300 hover:text-cyan-300 hover:border-cyan-300 transition-colors"
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-primary/25 text-muted-foreground hover:text-primary hover:border-primary transition-colors dark:border-cyan-400/25 dark:text-slate-300 dark:hover:text-cyan-300 dark:hover:border-cyan-300"
                     aria-label="Open project site"
                   >
                     <ExternalLink className="w-3.5 h-3.5" aria-hidden />
                   </a>
                 ) : (
-                  <ArrowUpRight className="w-4 h-4 text-slate-300" />
+                  <ArrowUpRight className="w-4 h-4 text-muted-foreground dark:text-slate-300" />
                 )}
               </div>
             </motion.div>

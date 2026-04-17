@@ -1,14 +1,139 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { mapSkillGroupRow } from "@/lib/experience-mappers";
 import { COLOR_THEME } from "@/pages/admin/shared/AdminComponents";
-import {
+import { ChevronLeft, ChevronRight,
   Bot, Zap, Code2, Smartphone, Globe, Database, Cpu, Settings,
   Compass, Layers, TrendingUp, Award, Star, Briefcase, BookOpen,
   BarChart, Lightbulb, Shield, Terminal, Rocket,
 } from "lucide-react";
+
+const CARD_W = 300;
+const CARD_H = 380;
+const STEP  = 140;
+
+function SkillCarousel({ groups }) {
+  // Default to 5th card (index 4); clamp if fewer than 5 groups
+  const [active, setActive] = useState(() =>
+    Math.min(4, Math.max(0, groups.length - 1))
+  );
+  const pointerX = useRef(null);
+
+  const clamp = (v) => Math.max(0, Math.min(groups.length - 1, v));
+  const goTo  = (i) => setActive(clamp(i));
+
+  return (
+    <div className="relative w-full select-none">
+      {/* Prev */}
+      <button
+        onClick={() => goTo(active - 1)}
+        disabled={active === 0}
+        className="absolute left-0 z-30 top-[44%] -translate-y-1/2 w-10 h-10 rounded-full border border-border/60 bg-card/90 backdrop-blur-sm flex items-center justify-center shadow transition hover:border-primary/50 hover:text-primary disabled:opacity-20 disabled:cursor-not-allowed"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      {/* Next */}
+      <button
+        onClick={() => goTo(active + 1)}
+        disabled={active === groups.length - 1}
+        className="absolute right-0 z-30 top-[44%] -translate-y-1/2 w-10 h-10 rounded-full border border-border/60 bg-card/90 backdrop-blur-sm flex items-center justify-center shadow transition hover:border-primary/50 hover:text-primary disabled:opacity-20 disabled:cursor-not-allowed"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Track — overflow-hidden clips far cards; absolute cards spread from center */}
+      <div
+        className="relative mx-8 overflow-hidden cursor-grab active:cursor-grabbing"
+        style={{ height: CARD_H + 40 }}
+        onPointerDown={(e) => { pointerX.current = e.clientX; }}
+        onPointerUp={(e) => {
+          if (pointerX.current === null) return;
+          const delta = pointerX.current - e.clientX;
+          if (Math.abs(delta) > 40) goTo(active + (delta > 0 ? 1 : -1));
+          pointerX.current = null;
+        }}
+        onPointerLeave={() => { pointerX.current = null; }}
+      >
+        {/* Left fade mask — softer in light theme */}
+        <div className="absolute inset-y-0 left-0 w-24 z-[25] pointer-events-none bg-gradient-to-r from-background via-background/80 to-transparent dark:from-card dark:via-card/70" />
+        {/* Right fade mask */}
+        <div className="absolute inset-y-0 right-0 w-24 z-[25] pointer-events-none bg-gradient-to-l from-background via-background/80 to-transparent dark:from-card dark:via-card/70" />
+
+        {groups.map((group, index) => {
+          const Icon     = ICON_MAP[group.iconName] || Globe;
+          const theme    = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
+          const dist     = index - active;          // signed offset
+          const absDist  = Math.abs(dist);
+          const opacity  = absDist === 0 ? 1 : absDist === 1 ? 0.82 : absDist === 2 ? 0.62 : absDist === 3 ? 0.42 : 0;
+          const scale    = absDist === 0 ? 1 : absDist === 1 ? 0.94 : absDist === 2 ? 0.88 : 0.82;
+          const zIndex   = 20 - absDist;
+
+          return (
+            <motion.div
+              key={group.id}
+              animate={{
+                x: dist * STEP - CARD_W / 2,
+                opacity,
+                scale,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 32 }}
+              style={{
+                position : "absolute",
+                left     : "50%",
+                top      : 16,
+                width    : CARD_W,
+                height   : CARD_H,
+                zIndex,            // static — applied immediately, no transition delay
+              }}
+              onClick={() => absDist > 0 && goTo(index)}
+              className={`p-6 rounded-xl border bg-background overflow-hidden transition-colors duration-300
+                ${absDist === 0
+                  ? "border-primary/35 shadow-xl shadow-primary/15"
+                  : "border-border/70 bg-card/90 cursor-pointer hover:border-primary/30"}`}
+            >
+              <div className="flex items-start justify-between mb-5">
+                <div className={`w-11 h-11 rounded-xl ${theme.bg} flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${theme.color}`} />
+                </div>
+                <span className="font-mono-caption text-muted-foreground/40 text-xs">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <h3 className="font-heading font-semibold text-base text-foreground mb-0.5">{group.label}</h3>
+              <p className={`font-mono-caption uppercase text-xs mb-4 ${theme.color}`}>{group.caption}</p>
+              <div className="flex flex-wrap gap-2">
+                {group.skills.map((skill) => (
+                  <span key={skill} className="px-2.5 py-1 rounded-full bg-secondary/90 text-secondary-foreground font-mono-caption text-xs border border-border/70">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+              {absDist === 0 && (
+                <div className="absolute inset-0 rounded-xl pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Dot indicators */}
+      <div className="flex justify-center gap-2 mt-5">
+        {groups.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === active ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const ICON_MAP = {
   Globe, Bot, Cpu, Zap, Code2, Database, Smartphone, Settings,
@@ -28,7 +153,6 @@ const FALLBACK_GROUPS = [
 ];
 
 export default function SkillsSection() {
-  const [activeGroup, setActiveGroup] = useState(null);
   const useDb = isSupabaseConfigured();
 
   const { data: dbGroups, isError, isLoading } = useQuery({
@@ -79,44 +203,7 @@ export default function SkillsSection() {
         {useDb && isLoading ? (
           <div className="text-muted-foreground text-sm py-4">Loading skills...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {groups.map((group, index) => {
-              const Icon = ICON_MAP[group.iconName] || Globe;
-              const theme = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
-              const isActive = activeGroup === group.id;
-              return (
-                <motion.div
-                  key={group.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-40px" }}
-                  transition={{ duration: 0.5, delay: index * 0.07 }}
-                  onMouseEnter={() => setActiveGroup(group.id)}
-                  onMouseLeave={() => setActiveGroup(null)}
-                  className="relative p-6 rounded-xl border border-border/50 bg-background hover:border-primary/30 transition-all duration-400 hover:shadow-lg hover:shadow-primary/5 cursor-default overflow-hidden"
-                >
-                  <div className="flex items-start justify-between mb-5">
-                    <div className={`w-11 h-11 rounded-xl ${theme.bg} flex items-center justify-center`}>
-                      <Icon className={`w-5 h-5 ${theme.color}`} />
-                    </div>
-                    <span className="font-mono-caption text-muted-foreground/40 text-xs">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <h3 className="font-heading font-semibold text-base text-foreground mb-0.5">{group.label}</h3>
-                  <p className={`font-mono-caption uppercase text-xs mb-4 ${theme.color}`}>{group.caption}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {group.skills.map((skill) => (
-                      <span key={skill} className="px-2.5 py-1 rounded-full bg-secondary text-secondary-foreground font-mono-caption text-xs border border-border/50">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="absolute inset-0 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-primary/5 to-transparent" />
-                </motion.div>
-              );
-            })}
-          </div>
+          <SkillCarousel groups={groups} />
         )}
 
         <motion.div

@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, Mail, MessageSquare, Send, User } from "lucide-react";
+import { AtSign, Linkedin, Mail, MessageCircle, MessageSquare, Send, User } from "lucide-react";
 import { toast } from "sonner";
 import { useProfile } from "@/lib/useProfile";
 
 export default function ContactSection() {
-  const { email: SITE_EMAIL } = useProfile();
+  const { email, whatsapp, linkedin } = useProfile();
+  const sanitizedWhatsapp = (whatsapp || "").replace(/[^\d]/g, "");
+  const whatsappHref = sanitizedWhatsapp ? `https://wa.me/${sanitizedWhatsapp}` : "";
+  const whatsappLabel = sanitizedWhatsapp ? `+${sanitizedWhatsapp}` : "";
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [sending, setSending] = useState(false);
 
@@ -122,7 +125,7 @@ export default function ContactSection() {
 
             <div className="space-y-4">
               <a
-                href={`mailto:${SITE_EMAIL}`}
+                href={`mailto:${email}`}
                 className="flex items-center gap-4 rounded-xl border border-border/80 bg-background/50 px-4 py-3 hover:border-primary/40 transition-colors"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
@@ -130,9 +133,43 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <p className="font-medium text-foreground">Email</p>
-                  <p className="text-sm text-muted-foreground">{SITE_EMAIL}</p>
+                  <p className="text-sm text-muted-foreground">{email}</p>
                 </div>
               </a>
+
+              {sanitizedWhatsapp && (
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-4 rounded-xl border border-border/80 bg-background/50 px-4 py-3 hover:border-primary/40 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">WhatsApp</p>
+                    <p className="text-sm text-muted-foreground">{whatsappLabel}</p>
+                  </div>
+                </a>
+              )}
+
+              {linkedin && (
+                <a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-4 rounded-xl border border-border/80 bg-background/50 px-4 py-3 hover:border-primary/40 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/15 text-primary flex items-center justify-center">
+                    <Linkedin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">LinkedIn</p>
+                    <p className="text-sm text-muted-foreground">View profile</p>
+                  </div>
+                </a>
+              )}
             </div>
           </motion.div>
         </div>

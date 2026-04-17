@@ -46,6 +46,8 @@ export function useProfile() {
     name:               s.profile_name,
     location:           s.profile_location,
     email:              s.profile_email,
+    whatsapp:           s.profile_whatsapp,
+    linkedin:           s.profile_linkedin,
     roleTitle:          s.profile_role_title,
     avatarUrl:          s.profile_avatar_url,
     workImageUrl:       s.profile_work_image_url,

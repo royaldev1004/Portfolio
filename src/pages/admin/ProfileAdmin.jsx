@@ -11,6 +11,7 @@ const STORAGE_BUCKET = "portfolio-media";
 
 const PROFILE_KEYS = [
   "profile_name", "profile_location", "profile_email", "profile_role_title",
+  "profile_whatsapp", "profile_linkedin",
   "profile_avatar_url", "profile_work_image_url",
   "hero_role_titles",
   "hero_tagline_pre", "hero_tagline_highlight", "hero_tagline_post",
@@ -187,6 +188,18 @@ export default function ProfileAdmin() {
             <FormField label="Full Name" value={current.profile_name} onChange={set("profile_name")} placeholder="Your full name" />
             <FormField label="Location" value={current.profile_location} onChange={set("profile_location")} placeholder="City, Country" />
             <FormField label="Email" value={current.profile_email} onChange={set("profile_email")} placeholder="you@example.com" />
+            <FormField
+              label="WhatsApp (international format, digits only)"
+              value={current.profile_whatsapp}
+              onChange={set("profile_whatsapp")}
+              placeholder="84912345678"
+            />
+            <FormField
+              label="LinkedIn URL"
+              value={current.profile_linkedin}
+              onChange={set("profile_linkedin")}
+              placeholder="https://www.linkedin.com/in/your-linkedin-id"
+            />
             <FormField label="Role / Title" value={current.profile_role_title} onChange={set("profile_role_title")} placeholder="e.g. Senior AI & Automation Engineer" />
             <FormField
               label="Hero rotating roles (one per line)"
