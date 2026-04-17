@@ -19,15 +19,18 @@ const PROFILE_KEYS = [
 
 const DEFAULTS = PROFILE_SITE_SETTINGS_DEFAULTS;
 
-/** Upload to Supabase Storage → public URL; updates parent via onUrlChange */
+/** Upload to Supabase Storage → public URL; persists to site_settings immediately */
 function ProfileImageSlot({
   title,
   description,
   folder,
+  settingsKey,
   value,
   onUrlChange,
+  onAfterPersist,
   previewClassName,
 }) {
+  const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef(null);
 
@@ -51,7 +54,13 @@ function ProfileImageSlot({
       const publicUrl = pub?.publicUrl;
       if (!publicUrl) throw new Error("Could not get public URL");
       onUrlChange(publicUrl);
-      toast.success("Image uploaded — click “Save changes” to persist.");
+      const { error: saveErr } = await supabase
+        .from("site_settings")
+        .upsert([{ key: settingsKey, value: publicUrl }], { onConflict: "key" });
+      if (saveErr) throw saveErr;
+      await qc.invalidateQueries({ queryKey: ["site-settings"] });
+      onAfterPersist?.(settingsKey, publicUrl);
+      toast.success("Photo uploaded and saved.");
     } catch (err) {
       const msg = err?.message || "Upload failed";
       if (msg.includes("Bucket not found") || msg.includes("not found")) {
@@ -78,6 +87,7 @@ function ProfileImageSlot({
         >
           {value ? (
             <img
+              key={value}
               src={value}
               alt=""
               className="w-full h-full object-cover object-top"
@@ -133,7 +143,18 @@ export default function ProfileAdmin() {
   const current = { ...DEFAULTS, ...(settings || {}), ...(edits || {}) };
   const isDirty = edits !== null;
 
-  const set = (key) => (val) => setEdits((prev) => ({ ...(prev ?? current), [key]: val }));
+  /** Prefer fresh React Query cache over render snapshot when starting a draft (avoids stale merges). */
+  const set = (key) => (val) =>
+    setEdits((prev) => {
+      if (prev != null) return { ...prev, [key]: val };
+      const fromQuery = qc.getQueryData(["site-settings"]) ?? {};
+      return { ...DEFAULTS, ...fromQuery, [key]: val };
+    });
+
+  /** Keep draft snapshot in sync with saved image URL so `edits` cannot override newer server URLs after refetch. */
+  const syncDraftImageUrl = (key, url) => {
+    setEdits((prev) => (prev != null ? { ...prev, [key]: url } : null));
+  };
 
   const save = async () => {
     if (!isDirty) return;
@@ -214,7 +235,7 @@ export default function ProfileAdmin() {
             <div>
               <p className="font-heading font-semibold text-sm text-foreground">Images</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Upload new photos here, then press <span className="text-foreground font-medium">Save changes</span>. Hero uses the round portrait; About uses the wide shot.
+                Uploads save to your site immediately. Use <span className="text-foreground font-medium">Save changes</span> for other profile fields. Hero uses the round portrait; About uses the wide shot.
               </p>
             </div>
 
@@ -222,8 +243,10 @@ export default function ProfileAdmin() {
               title="Hero — profile / avatar"
               description="Shown in the hero circle next to your name."
               folder="profile/avatar"
+              settingsKey="profile_avatar_url"
               value={current.profile_avatar_url}
               onUrlChange={set("profile_avatar_url")}
+              onAfterPersist={syncDraftImageUrl}
               previewClassName="rounded-full"
             />
 
@@ -231,8 +254,10 @@ export default function ProfileAdmin() {
               title="About section"
               description="Larger image in the About block."
               folder="profile/about"
+              settingsKey="profile_work_image_url"
               value={current.profile_work_image_url}
               onUrlChange={set("profile_work_image_url")}
+              onAfterPersist={syncDraftImageUrl}
               previewClassName="rounded-xl"
             />
           </div>
