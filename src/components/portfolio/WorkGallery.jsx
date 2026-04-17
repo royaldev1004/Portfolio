@@ -19,6 +19,7 @@ function toCategoryLabel(slug) {
 export default function WorkGallery() {
   const useDb = isSupabaseConfigured();
   const [activeCategory, setActiveCategory] = useState("all");
+  const [visibleNoteworthyCount, setVisibleNoteworthyCount] = useState(6);
 
   const { data: dbProjects, isError, isLoading } = useQuery({
     queryKey: ["portfolio", "projects"],
@@ -66,8 +67,11 @@ export default function WorkGallery() {
     ? noteworthyProjects
     : noteworthyProjects.filter((p) => p.workCategory === activeCategory);
 
+  const visibleNoteworthy = filteredNoteworthy.slice(0, visibleNoteworthyCount);
+  const hasMoreNoteworthy = filteredNoteworthy.length > visibleNoteworthy.length;
+
   // Group filtered noteworthy projects by subcategory
-  const groupedNoteworthy = filteredNoteworthy.reduce((acc, project) => {
+  const groupedNoteworthy = visibleNoteworthy.reduce((acc, project) => {
     const key = project.subcategory?.trim() || "__none__";
     if (!acc[key]) acc[key] = [];
     acc[key].push(project);
@@ -81,6 +85,10 @@ export default function WorkGallery() {
   ];
 
   const showSubcategories = activeCategory !== "all" && subcategoryKeys.some((k) => k !== "__none__");
+
+  React.useEffect(() => {
+    setVisibleNoteworthyCount(6);
+  }, [activeCategory]);
 
   return (
     <section id="work" className="py-24 md:py-32 px-[7.5vw] relative overflow-hidden">
@@ -197,7 +205,7 @@ export default function WorkGallery() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredNoteworthy.map((project, index) => (
+                    {visibleNoteworthy.map((project, index) => (
                       <ProjectCard key={project.id} project={project} index={index} variant="noteworthy" />
                     ))}
                   </div>
@@ -205,6 +213,17 @@ export default function WorkGallery() {
               ) : null}
             </motion.div>
           </AnimatePresence>
+
+          {hasMoreNoteworthy && (
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setVisibleNoteworthyCount((prev) => prev + 6)}
+                className="px-6 py-2.5 rounded-full text-sm font-semibold border border-primary/60 text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+              >
+                Load more
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
