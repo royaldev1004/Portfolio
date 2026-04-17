@@ -20,7 +20,7 @@ const AuthenticatedApp = () => {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setIsInitialDelayDone(true);
-    }, 5000);
+    }, 1000);
 
     return () => window.clearTimeout(timer);
   }, []);
