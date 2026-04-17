@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -7,20 +8,26 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ThemeProvider } from '@/lib/useTheme';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import LoadingScreen from '@/components/LoadingScreen';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import ProjectDetail from './pages/ProjectDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const [isInitialDelayDone, setIsInitialDelayDone] = useState(false);
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setIsInitialDelayDone(true);
+    }, 5000);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // Keep loader visible for 5 seconds on refresh and while auth/settings are loading.
+  if (!isInitialDelayDone || isLoadingPublicSettings || isLoadingAuth) {
+    return <LoadingScreen />;
   }
 
   // Handle authentication errors
