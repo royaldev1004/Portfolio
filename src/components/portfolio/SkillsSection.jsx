@@ -21,15 +21,25 @@ function SkillCarousel({ groups }) {
   );
   const pointerX = useRef(null);
 
-  const clamp = (v) => Math.max(0, Math.min(groups.length - 1, v));
-  const goTo  = (i) => setActive(clamp(i));
+  const wrap = (v) => {
+    const total = groups.length;
+    if (total <= 0) return 0;
+    return ((v % total) + total) % total;
+  };
+
+  const circularDist = (index, center) => {
+    const total = groups.length;
+    if (total <= 1) return 0;
+    return ((index - center + Math.floor(total / 2) + total) % total) - Math.floor(total / 2);
+  };
+
+  const goTo  = (i) => setActive(wrap(i));
 
   return (
     <div className="relative w-full select-none">
       {/* Prev */}
       <button
         onClick={() => goTo(active - 1)}
-        disabled={active === 0}
         className="absolute left-0 z-30 top-[44%] -translate-y-1/2 w-10 h-10 rounded-full border border-border/60 bg-card/90 backdrop-blur-sm flex items-center justify-center shadow transition hover:border-primary/50 hover:text-primary disabled:opacity-20 disabled:cursor-not-allowed"
       >
         <ChevronLeft className="w-5 h-5" />
@@ -38,7 +48,6 @@ function SkillCarousel({ groups }) {
       {/* Next */}
       <button
         onClick={() => goTo(active + 1)}
-        disabled={active === groups.length - 1}
         className="absolute right-0 z-30 top-[44%] -translate-y-1/2 w-10 h-10 rounded-full border border-border/60 bg-card/90 backdrop-blur-sm flex items-center justify-center shadow transition hover:border-primary/50 hover:text-primary disabled:opacity-20 disabled:cursor-not-allowed"
       >
         <ChevronRight className="w-5 h-5" />
@@ -65,7 +74,7 @@ function SkillCarousel({ groups }) {
         {groups.map((group, index) => {
           const Icon     = ICON_MAP[group.iconName] || Globe;
           const theme    = COLOR_THEME[group.colorKey] || COLOR_THEME.blue;
-          const dist     = index - active;          // signed offset
+          const dist     = circularDist(index, active); // signed circular offset
           const absDist  = Math.abs(dist);
           const opacity  = absDist === 0 ? 1 : absDist === 1 ? 0.82 : absDist === 2 ? 0.62 : absDist === 3 ? 0.42 : 0;
           const scale    = absDist === 0 ? 1 : absDist === 1 ? 0.94 : absDist === 2 ? 0.88 : 0.82;
